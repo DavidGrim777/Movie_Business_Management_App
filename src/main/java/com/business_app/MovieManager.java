@@ -57,9 +57,20 @@ class MovieManager {
     // Метод для обновления данных фильма
     public void updateMovie(Movie updatedMovie) {
         if (updatedMovie == null) {
+            System.out.println("Попытка обновить null-фильм.");
             log.warn("Попытка обновить null-фильм.");
             return;
-
+        }
+        for (int i = 0; i < movies.size(); i++) {
+            if (movies.get(i).getId().equals(updatedMovie.getId())) {
+                movies.set(i, updatedMovie);
+                System.out.println("Фильм обновлён: " + updatedMovie.getTitle());
+                log.info("Фильм обновлён: {}", updatedMovie.getTitle());
+                return;
+            }
+        }
+        System.out.println("Фильм с ID " + updatedMovie.getId() + " не найден.");
+        log.warn("Фильм с ID {} не найден.", updatedMovie.getId());
     }
-}
+
 }
