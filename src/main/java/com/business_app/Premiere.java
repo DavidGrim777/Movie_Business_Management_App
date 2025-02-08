@@ -126,6 +126,8 @@ public class Premiere {
             }
         }
 
+
+
         // Метод для добавления отзыва
         public void addReview(String review) {
             if (review == null || review.trim().isEmpty()) {

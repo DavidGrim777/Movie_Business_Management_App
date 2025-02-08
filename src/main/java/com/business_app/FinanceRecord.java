@@ -3,7 +3,12 @@ package com.business_app;
 import com.github.javafaker.Finance;
 
 public class FinanceRecord {
-        public enum Type {INCOME, EXPENSE}
+
+    public void generateReport() {
+        //TODO
+    }
+
+    public enum Type {INCOME, EXPENSE}
 
         private int id;
         private FinanceType type;
@@ -38,4 +43,5 @@ public class FinanceRecord {
         public String getDate() {
             return date;
         }
+
     }
