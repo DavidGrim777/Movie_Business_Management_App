@@ -2,17 +2,19 @@ package com.business_app;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.LocalDate;
+
 @Slf4j
 public class Contract {
 
     private String id;
     private String personName;
     private String role;
-    private String startDate;
-    private String endDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
     private double salary;
 
-    public Contract(String id, String personName, String role, String startDate, String endDate, double salary) {
+    public Contract(String id, String personName, String role, LocalDate startDate, LocalDate endDate, double salary) {
         this.id = id;
         this.personName = personName;
         this.role = role;
@@ -33,11 +35,11 @@ public class Contract {
         return role;
     }
 
-    public String getStartDate() {
+    public LocalDate getStartDate() {
         return startDate;
     }
 
-    public String getEndDate() {
+    public LocalDate getEndDate() {
         return endDate;
     }
 
@@ -75,7 +77,7 @@ public class Contract {
             System.out.println("Дата начала не может быть пустой.");
             log.warn("Дата начала не может быть пустой.");
         }
-        this.startDate = startDate;
+        this.startDate = LocalDate.parse(startDate);
     }
 
     public void setEndDate(String endDate) {
@@ -83,7 +85,7 @@ public class Contract {
             System.out.println("Дата окончания не может быть пустой.");
             log.warn("Дата окончания не может быть пустой.");
         }
-        this.endDate = endDate;
+        this.endDate = LocalDate.parse(endDate);
     }
 
     public void setSalary(double salary) {
@@ -94,7 +96,7 @@ public class Contract {
         this.salary = salary;
     }
     public boolean isActive() {
-        return endDate != null && !endDate.isEmpty();
+        return endDate != null && !endDate.isAfter(LocalDate.now());
     }
 
     @Override

@@ -32,6 +32,10 @@ public class Movie {
         this.producer = producer;
         this.actors = actors;
     }
+
+    public Movie(String movieId, String title, MovieStatus movieStatus) {
+
+    }
     // Геттеры для получения значений полей
 
     public String getId() {

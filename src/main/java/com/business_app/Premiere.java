@@ -1,5 +1,6 @@
 package com.business_app;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -31,7 +32,11 @@ public class Premiere {
             this.reviews = new ArrayList<>();
         }
 
-        public int getId() {
+    public Premiere(String premiereId, LocalDate premiereDate, String premierePlace) {
+
+    }
+
+    public int getId() {
             return id;
         }
 
