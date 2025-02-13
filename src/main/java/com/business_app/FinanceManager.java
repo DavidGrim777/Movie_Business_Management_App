@@ -21,24 +21,30 @@ public class FinanceManager {
         return new ArrayList<>(financeRecords);// Возвращаем копию списка, чтобы сохранить инкапсуляцию
     }
 
+    // Метод для вычисления общих расходов
     public double calculateTotalExpenses() {
         double totalExpenses = 0.0;
+        // Проходим по всем записям
         for (FinanceRecord record : financeRecords) {
-            if (record.getType() == FinanceRecord.FinanceType.EXPENSE) {
-                totalExpenses = totalExpenses + record.getAmount();
+            // Если тип записи - расход
+            if (record.getType() == FinanceType.EXPENSE) {
+                totalExpenses += record.getAmount();  // Добавляем сумму расхода
             }
         }
-        return totalExpenses;
+        return totalExpenses;  // Возвращаем общую сумму расходов
     }
 
+    // Метод для вычисления общего дохода
     public double calculateTotalIncome() {
         double totalIncome = 0.0;
+        // Проходим по всем записям
         for (FinanceRecord record : financeRecords) {
-            if (record.getType() == FinanceRecord.FinanceType.INCOME) {
-                totalIncome = totalIncome + record.getAmount();
+            // Если тип записи - доход
+            if (record.getType() == FinanceType.INCOME) {
+                totalIncome += record.getAmount();  // Добавляем сумму дохода
             }
         }
-        return totalIncome;
+        return totalIncome;  // Возвращаем общую сумму доходов
     }
 
     // Генерация отчета о финансах (например, в CSV или PDF)
