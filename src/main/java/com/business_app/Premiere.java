@@ -1,9 +1,10 @@
 package com.business_app;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -13,9 +14,10 @@ public class Premiere {
     private static final String DATE_FORMAT = "dd.MM.yyyy HH:mm";
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
 
-    private final int id;
+
+    private int id;
     private String movieTitle;
-    private String date;
+    private LocalDateTime date;
     private String location;
     private int ticketCount;
     private int ticketSold;
@@ -25,6 +27,22 @@ public class Premiere {
     private double ticketPrice; // Стоимость билета
     private int minAgeForAdmission; // Минимальный возраст для посещения премьеры
 
+
+    public Premiere(int id, String movieTitle, LocalDateTime date, String location,
+                    int ticketCount, int ticketSold, double budget, List<String> guestList,
+                    List<String> reviews, double ticketPrice, int minAgeForAdmission) {
+        this.id = id;
+        this.movieTitle = movieTitle;
+        this.date = date;
+        this.location = location;
+        this.ticketCount = ticketCount;
+        this.ticketSold = 0;
+        this.budget = budget;
+        this.guestList = new ArrayList<>();
+        this.reviews = new ArrayList<>();
+        this.ticketPrice = ticketPrice;// Инициализируем стоимость билета
+        this.minAgeForAdmission = minAgeForAdmission;// Устанавливаем минимальный возраст для посещения
+    }
 
     public Premiere(int id, String movieTitle, String date, String location, int ticketCount,
                     double budget, double ticketPrice, int minAgeForAdmission) {
@@ -45,37 +63,23 @@ public class Premiere {
             throw new IllegalArgumentException("Бюджет должен быть больше 0");
         }
 
-        this.id = id;
-        this.movieTitle = movieTitle;
-        this.date = date;
-        this.location = location;
-        this.ticketCount = ticketCount;
-        this.ticketSold = 0;
-        this.budget = budget;
-        this.guestList = new ArrayList<>();
-        this.reviews = new ArrayList<>();
-        this.ticketPrice = ticketPrice; // Инициализируем стоимость билета
-        this.minAgeForAdmission = minAgeForAdmission; // Устанавливаем минимальный возраст для посещения
-
         // Пробуем установить дату
         setDate(date);
     }
-
-    // Метод для установки даты с проверкой формата
     public void setDate(String date) {
         if (date == null || date.trim().isEmpty()) {
             throw new IllegalArgumentException("Дата не может быть пустой или null.");
         }
-
         try {
-            dateFormat.setLenient(false);
-            Date parsedDate = dateFormat.parse(date); // Пробуем распарсить дату
-            this.date = date; // Если дата правильная, сохраняем её
-        } catch (ParseException e) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
+            this.date = LocalDateTime.parse(date, formatter); // Используем LocalDateTime для даты
+        } catch (DateTimeParseException e) {
             logger.warning("Некорректный формат даты. Требуется: " + DATE_FORMAT);
             throw new IllegalArgumentException("Ошибка: Некорректный формат даты. Требуется: " + DATE_FORMAT);
         }
     }
+
+    // Метод для установки даты с проверкой формата
 
     public int getId() {
         return id;
@@ -83,10 +87,6 @@ public class Premiere {
 
     public String getMovieTitle() {
         return movieTitle;
-    }
-
-    public String getDate() {
-        return date;
     }
 
     public String getLocation() {
