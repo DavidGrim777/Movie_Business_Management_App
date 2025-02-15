@@ -7,6 +7,9 @@ import java.util.List;
 
 @Slf4j
 public class Movie {
+
+    // Поля класса, которые хранят информацию о фильме
+
     private String id;
     private String title;
     private String genre;
@@ -251,6 +254,7 @@ public class Movie {
             log.info("Фильм уже имеет статус: {}", newStatus);
             return;
         }
+        this.status = newStatus;
         System.out.println("Статус фильма успешно обновлён на: " + newStatus);
         log.info("Статус фильма успешно обновлён на: {}", newStatus);
 
