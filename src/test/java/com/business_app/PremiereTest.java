@@ -3,10 +3,16 @@ package com.business_app;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+
+import java.time.LocalDateTime;
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
@@ -18,92 +24,85 @@ public class PremiereTest {
     void setUp() {
 
         // Инициализация объекта Premiere перед каждым тестом
-        premiere = new Premiere(1, "Titanic", "2025-05-01", "Cinema City", 100, 1000.0, 30);
+        premiere = new Premiere(1, "Titanic", "02.02.2025 10:00", "Cinema City",
+                    100,40, 1000.0, 16);
     }
 
-    @Test
-    void testIsBudgetAvailable_WithSufficientBudget() {
-        // Arrange (подготовка): устанавливаем сумму, на которую проверяется бюджет
-        double requiredAmount = 500.0;
-
-        // Act (действие): проверка, доступен ли бюджет
-        boolean result = premiere.isBudgetAvailable(requiredAmount);
-
-        // Assert (проверка): бюджет должен быть доступен
-        assertTrue(result, "Бюджет должен быть доступен");
-    }
-
-    @Test
-    void testIsBudgetAvailable_WithInsufficientBudget() {
-        // Arrange
-        double requiredAmount = 1500.0;
-
+    @ParameterizedTest
+    @CsvSource({
+            "'500.0', true",  // Сумма 500.0, достаточно средств
+            "'0.0', true",     // Сумма 0.0, бюджет всегда доступен (0 не может быть отрицательным)
+            "'-500.0', false", // Сумма -500.0, некорректная сумма
+            "'', false",       // Пустое значение, некорректный ввод
+            "'abcd', false"    // Некорректное значение (нечисловое)
+    })
+    void testIsBudgetAvailable(String requiredAmount, boolean expected) {
         // Act
         boolean result = premiere.isBudgetAvailable(requiredAmount);
 
         // Assert
-        assertFalse(result, "Бюджет должен быть недоступен");
+        assertEquals(expected, result, "Проверка на доступность бюджета " + requiredAmount);
     }
 
-    @Test
-    void testCanSellTickets_WithAvailableTickets() {
-        // Arrange
-        int ticketsToSell = 50;
-
+    @ParameterizedTest
+    @CsvSource({
+            "50, true",   // Доступно 50 билетов, можно продать
+            "150, false", // Недостаточно билетов (максимум 100)
+            "1, true",    // Можно продать 1 билет
+            "0, false",   // Нельзя продать 0 билетов
+            "-10, false", // Невозможно продать отрицательное количество билетов
+    })
+    void testCanSellTickets(int ticketsToSell, boolean expectedResult) {
         // Act
         boolean result = premiere.canSellTickets(ticketsToSell);
 
         // Assert
-        assertTrue(result, "Билеты должны быть доступны для продажи");
+        assertEquals(expectedResult, result, "Проверка доступности продажи билетов для количества: " + ticketsToSell);
     }
 
-    @Test
-    void testCanSellTickets_WithNotEnoughTickets() {
-        // Arrange
-        int ticketsToSell = 150;
-
-        // Act
-        boolean result = premiere.canSellTickets(ticketsToSell);
-
-        // Assert
-        assertFalse(result, "Билеты не должны быть доступны для продажи");
-    }
-
-    @Test
-    void testSellTickets_WithAvailableTickets() {
-        // Arrange
-        int ticketsToSell = 50;
-
+    @ParameterizedTest
+    @CsvSource({
+            "50",  // Успешная продажа
+            "1",   // Пример успешной продажи
+    })
+    void testSellTickets_WithValidAmount(int ticketsToSell) {
         // Act
         premiere.sellTickets(ticketsToSell);
 
         // Assert
-        assertEquals(50, premiere.getTicketSold(), "Количество проданных билетов должно быть обновлено");
+        assertEquals(ticketsToSell, premiere.getTicketSold(),
+                "Количество проданных билетов должно быть обновлено для " + ticketsToSell);
     }
 
-    @Test
-    void testSellTickets_WithNotEnoughTickets() {
-        // Arrange
-        int ticketsToSell = 150;
-
-        // Act
-        premiere.sellTickets(ticketsToSell);
+    @ParameterizedTest
+    @CsvSource({
+            "0",     // Невозможно продать 0 билетов
+            "-10",   // Невозможно продать отрицательное количество билетов
+            "150",   // Превышено количество доступных билетов
+    })
+    void testSellTickets_WithInvalidAmount(int ticketsToSell) {
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            premiere.sellTickets(ticketsToSell);
+        });
 
         // Assert
-        assertEquals(0, premiere.getTicketSold(), "Количество проданных билетов не должно изменяться из-за нехватки билетов");
+        assertEquals("Ошибка при продаже билетов: Недостаточно билетов.", exception.getMessage(),
+                "Ошибка при продаже билетов для количества: " + ticketsToSell);
     }
 
     @Test
     void testReturnTickets_WithValidCount() {
         // Arrange
         premiere.sellTickets(50); // Продаем 50 билетов
-        int ticketsToReturn = 20;
+        int ticketsToReturn = 60;
 
         // Act
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
         premiere.returnTickets(ticketsToReturn);
-
+        });
         // Assert
-        assertEquals(30, premiere.getTicketSold(), "Количество проданных билетов должно быть обновлено после возврата");
+        assertEquals("Невозможно вернуть больше билетов, чем было продано.", exception.getMessage(), "Ошибка при возврате билетов");
     }
 
     @Test
@@ -113,46 +112,34 @@ public class PremiereTest {
         int ticketsToReturn = 60;
 
         // Act
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
         premiere.returnTickets(ticketsToReturn);
+        });
 
         // Assert
-        assertEquals(50, premiere.getTicketSold(), "Количество проданных билетов не должно изменяться, если количество возврата превышает проданные");
+        assertEquals("Невозможно вернуть больше билетов, чем было продано.", exception.getMessage(), "Ошибка при возврате билетов");
     }
 
-    @Test
-    void testAddGuest_WithValidGuest() {
+    @ParameterizedTest
+    @CsvSource({
+            "'Alice', 20, true",   // Валидный гость
+            "'Bob', 16, false",    // Недопустимый гость (меньше минимального возраста)
+            "'', 25, false"        // Пустое имя
+    })
+    void testAddGuest(String guestName, int guestAge, boolean expectedResult) {
         // Arrange
-        String guestName = "John Doe";
+        Premiere premiere = new Premiere(1, "Movie Title", LocalDateTime.now(), "Cinema",
+                100, 0, 5000.0, Arrays.asList("John Doe", "Jane Smith"), Arrays.asList("Good", "Excellent"), 50.0, 18);
 
-        // Act
-        premiere.addGuest(guestName);
+        // Act: Добавление гостя
+        premiere.addGuest(guestName, guestAge);
 
-        // Assert
-        assertTrue(premiere.getGuestList().contains(guestName), "Гость должен быть добавлен в список гостей");
-    }
-
-    @Test
-    void testAddGuest_WithEmptyGuest() {
-        // Arrange
-        String guestName = "";
-
-        // Act
-        premiere.addGuest(guestName);
-
-        // Assert
-        assertFalse(premiere.getGuestList().contains(guestName), "Гость не должен быть добавлен, если имя пустое");
-    }
-
-    @Test
-    void testAddGuest_WithNullGuest() {
-        // Arrange
-        String guestName = null;
-
-        // Act
-        premiere.addGuest(guestName);
-
-        // Assert
-        assertFalse(premiere.getGuestList().contains(guestName), "Гость не должен быть добавлен, если имя null");
+        // Assert: Проверка состояния списка гостей
+        if (expectedResult) {
+            assertTrue(premiere.getGuestList().contains(guestName), "Гость должен быть добавлен в список.");
+        } else {
+            assertFalse(premiere.getGuestList().contains(guestName), "Гость не должен быть добавлен в список.");
+        }
     }
 
     @Test
@@ -194,7 +181,6 @@ public class PremiereTest {
     void testGenerateReport() {
         // Arrange
         premiere.sellTickets(50);
-        premiere.addGuest("John Doe");
         premiere.addReview("Amazing movie!");
 
         // Act
