@@ -36,10 +36,10 @@ public class Premiere {
         this.date = date;
         this.location = location;
         this.ticketCount = ticketCount;
-        this.ticketSold = 0;
+        this.ticketSold = ticketSold;
         this.budget = budget;
-        this.guestList = new ArrayList<>();
-        this.reviews = new ArrayList<>();
+        this.guestList = guestList;;
+        this.reviews = reviews;
         this.ticketPrice = ticketPrice;// Инициализируем стоимость билета
         this.minAgeForAdmission = minAgeForAdmission;// Устанавливаем минимальный возраст для посещения
     }
@@ -79,42 +79,93 @@ public class Premiere {
         }
     }
 
-    // Метод для установки даты с проверкой формата
 
     public int getId() {
         return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getMovieTitle() {
         return movieTitle;
     }
 
+    public void setMovieTitle(String movieTitle) {
+        this.movieTitle = movieTitle;
+    }
+
+    public LocalDateTime getDate() {
+        return date;
+    }
+
+    public void setDate(LocalDateTime date) {
+        this.date = date;
+    }
+
     public String getLocation() {
         return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
     }
 
     public int getTicketCount() {
         return ticketCount;
     }
 
+    public void setTicketCount(int ticketCount) {
+        this.ticketCount = ticketCount;
+    }
+
     public int getTicketSold() {
         return ticketSold;
+    }
+
+    public void setTicketSold(int ticketSold) {
+        this.ticketSold = ticketSold;
     }
 
     public double getBudget() {
         return budget;
     }
 
+    public void setBudget(double budget) {
+        this.budget = budget;
+    }
+
     public List<String> getGuestList() {
         return guestList;
+    }
+
+    public void setGuestList(List<String> guestList) {
+        this.guestList = guestList;
     }
 
     public List<String> getReviews() {
         return reviews;
     }
 
+    public void setReviews(List<String> reviews) {
+        this.reviews = reviews;
+    }
+
+    public double getTicketPrice() {
+        return ticketPrice;
+    }
+
+    public void setTicketPrice(double ticketPrice) {
+        this.ticketPrice = ticketPrice;
+    }
+
     public int getMinAgeForAdmission() {
         return minAgeForAdmission;
+    }
+
+    public void setMinAgeForAdmission(int minAgeForAdmission) {
+        this.minAgeForAdmission = minAgeForAdmission;
     }
 
     // Метод для добавления гостей с проверкой возраста и минимального возраста премьеры
@@ -132,17 +183,19 @@ public class Premiere {
     }
 
     // Метод для проверки доступности бюджета
-    public boolean isBudgetAvailable(double cost) {
-        if (cost < 0) {
-            logger.warning("Ошибка: Стоимость не может быть отрицательной.");
+    public boolean isBudgetAvailable(double budget) {
+        // Проверка, чтобы бюджет премьеры не был отрицательным
+        if (budget < 0) {
+            logger.warning("Ошибка: Бюджет премьеры не может быть отрицательным.");
             return false;
         }
-        // Сравниваем, если бюджет больше или равен нужной сумме
+
+        // Проверка, что доступный бюджет больше или равен необходимой сумме
         if (budget >= cost) {
-            return true; // Если достаточно, возвращаем true
+            return true; // Если бюджет достаточен, возвращаем true
         } else {
-            logger.warning("Ошибка: Недостаточно бюджета для суммы: " + cost);
-            return false; // Если нет, возвращаем false
+            logger.info("Достаточно бюджета : " + cost );
+            return true; // Если бюджета достаточно, возвращаем true
         }
     }
 
@@ -165,6 +218,7 @@ public class Premiere {
     public void sellTickets(int count) {
         if (canSellTickets(count)) {
             ticketSold += count;
+            logger.info(count + " билетов продано.");
         } else {
             logger.warning("Ошибка при продаже билетов: Недостаточно билетов.");
             throw new IllegalArgumentException("Ошибка при продаже билетов: Недостаточно билетов.");
