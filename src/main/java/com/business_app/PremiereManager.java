@@ -22,4 +22,13 @@ public class PremiereManager {
             System.out.println(premiere.generateReport()); // Генерируем отчет для каждой премьеры
         }
     }
+    public void printAllPremieres() {
+        if (premieres.isEmpty()) {
+            System.out.println("Список премьер пуст.");
+        } else {
+            for (Premiere premiere : premieres) {
+                System.out.println(premiere);
+            }
+        }
+    }
 }

@@ -50,11 +50,21 @@ public class FinanceManager {
     // Генерация отчета о финансах (например, в CSV или PDF)
     public void generateFinanceReport() {
         // Пример генерации отчета: просто выводим все записи
-        System.out.println("Finance Report:");
+        System.out.println("Finance Report:");  // TODO
         for (FinanceRecord record : financeRecords) {
             System.out.println("ID: " + record.getId() + ", Type: " + record.getType() +
                     ", Amount: " + record.getAmount() + ", Description: " + record.getDescription() +
                     ", Date: " + record.getDate());
+        }
+    }
+
+    public void removeFinanceRecord(String recordToRemoveId) {
+        boolean removed = financeRecords.removeIf(record ->
+                recordToRemoveId.equals(record.getId()));
+        if (removed) {
+            System.out.println("Финансовая запись с ID " + recordToRemoveId + " успешно удалена.");
+        } else {
+            System.out.println("Ошибка: Финансовая запись с ID " + recordToRemoveId + " не найдена.");
         }
     }
 }
