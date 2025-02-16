@@ -8,20 +8,23 @@ import java.util.List;
 @Slf4j
 public class Movie {
 
-    // Поля класса, которые хранят информацию о фильме
+    private String id;                        // Уникальный идентификатор фильма
+    private String title;                     // Название фильма
+    private String genre;                     // Жанр фильма
+    private String startDate;                 // Дата начала показа фильма
+    private String endDate;                   // Дата окончания показа фильма
+    private MovieStatus status;               // Статус фильма (PLANNED, IN_PROGRESS, COMPLETED)
+    private double budget;                    // Бюджет фильма
+    private List<String> producer;            // Список продюсеров фильма
+    private List<String> actors;              // Список актёров фильма
 
-    private String id;
-    private String title;
-    private String genre;
-    private String startDate;
-    private String endDate;
-    private MovieStatus status;
-    private double budget;
-    private List<String> producer;
-    private List<String> actors;
-
-    // // Конструктор инициализирует все поля фильма
-
+    // Конструктор с минимальным набором данных для создания фильма
+    public Movie(String movieId, String title, MovieStatus movieStatus) {
+        this.id = movieId;
+        this.title = title;
+        this.status = movieStatus;
+    }
+    // Конструктор, инициализирующий все поля фильма
     public Movie(String id, String title, String genre, String startDate, String endDate,
                  MovieStatus status, double budget, List<String> producer, List<String> actors) {
 
@@ -36,11 +39,7 @@ public class Movie {
         this.actors = actors;
     }
 
-    public Movie(String movieId, String title, MovieStatus movieStatus) {
-
-    }
     // Геттеры для получения значений полей
-
     public String getId() {
         return id;
     }
@@ -82,8 +81,8 @@ public class Movie {
         }
         return actors;
     }
-    // Сеттеры с проверками входных данных
 
+    // Сеттеры с проверками входных данных
     public void setId(String id) {
         if (id == null || id.trim().isEmpty()) {
             System.out.println("ID не может быть пустым.");
@@ -155,8 +154,8 @@ public class Movie {
         }
         this.actors = actors;
     }
-    // Методы для работы с продюсерами
 
+    // Методы для работы с продюсерами
     public void addProducer(String producerName) {
         if (producerName == null || producerName.trim().isEmpty()) {
             System.out.println("Имя продюсера не может быть пустым.");
@@ -188,8 +187,8 @@ public class Movie {
             log.info("Продюсера не найден.");
         }
     }
-    // Методы для работы с актёрами
 
+    // Методы для работы с актёрами
     public void addActor(String actorName) {
 
         if (actorName == null || actorName.trim().isEmpty()) {
@@ -216,7 +215,7 @@ public class Movie {
         }
         if (actors.remove(actorName)) {
             System.out.println("Актёр удалён: " + actorName);
-            log.info("Актёр удалён: {}",actorName);
+            log.info("Актёр удалён: {}", actorName);
         } else {
             System.out.println("Актёр не найден.");
             log.info("Актёр не найден.");
@@ -229,8 +228,8 @@ public class Movie {
             log.warn("Некорректный статус. Обновление не выполнено.");
             return;
         }
-        // Метод для обновления статуса фильма
 
+        // Метод для обновления статуса фильма
         switch (newStatus) {
             case PLANNED:
                 System.out.println("Фильм теперь находится в производстве.");
@@ -257,6 +256,21 @@ public class Movie {
         this.status = newStatus;
         System.out.println("Статус фильма успешно обновлён на: " + newStatus);
         log.info("Статус фильма успешно обновлён на: {}", newStatus);
+    }
 
+    // Переопределение метода toString() для вывода информации о фильме
+    @Override
+    public String toString() {
+        return "Movie{" +
+                "id='" + id + '\'' +
+                ", title='" + title + '\'' +
+                ", genre='" + genre + '\'' +
+                ", startDate='" + startDate + '\'' +
+                ", endDate='" + endDate + '\'' +
+                ", status=" + status +
+                ", budget=" + budget +
+                ", producer=" + producer +
+                ", actors=" + actors +
+                '}';
     }
 }

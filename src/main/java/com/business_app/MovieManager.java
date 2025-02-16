@@ -10,13 +10,11 @@ class MovieManager {
     private List<Movie> movies;
 
     // Конструктор инициализирует список фильмов
-
     public MovieManager() {
         this.movies = new ArrayList<>();
     }
 
     // Метод для добавления фильма в список
-
     public void addMovie(Movie movie) {
         if (movie == null) {
             System.out.println("Попытка добавить null-фильм.");
@@ -29,7 +27,6 @@ class MovieManager {
     }
 
     // Метод для удаления фильма по ID
-
     public void removeMovie(String movieId) {
         if (movieId == null || movieId.trim().isEmpty()) {
             System.out.println("Попытка удалить фильм с пустым ID.");
@@ -73,4 +70,14 @@ class MovieManager {
         log.warn("Фильм с ID {} не найден.", updatedMovie.getId());
     }
 
+    // Метод выводит в консоль все фильмы из списка
+    public void printAllMovies() {
+        if (movies.isEmpty()) {
+            System.out.println("Список фильмов пуст.");
+        } else {
+            for (Movie movie : movies) {
+                System.out.println(movie);
+            }
+        }
+    }
 }
