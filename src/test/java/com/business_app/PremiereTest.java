@@ -185,4 +185,5 @@ public class PremiereTest {
             assertFalse(premiere.getReviews().contains(review), "Отзыв не должен быть добавлен");
         }
     }
+
 }
