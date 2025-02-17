@@ -1,6 +1,5 @@
 package com.business_app;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -12,15 +11,13 @@ public class Premiere {
 
     private static final Logger logger = Logger.getLogger(Premiere.class.getName());
     private static final String DATE_FORMAT = "dd.MM.yyyy HH:mm";
-    private static final SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
-
 
     private int id;
     private String movieTitle;
     private LocalDateTime date;
     private String location;
-    private int ticketCount;
-    private int ticketSold;
+    private int ticketCount; // кол-во доступных билетов
+    private int ticketSold;// кол-во проданных билетов
     private double budget;
     private List<String> guestList;// Список гостей
     private List<String> reviews;
@@ -38,34 +35,25 @@ public class Premiere {
         this.ticketCount = ticketCount;
         this.ticketSold = ticketSold;
         this.budget = budget;
-        this.guestList = guestList;;
-        this.reviews = reviews;
-        this.ticketPrice = ticketPrice;// Инициализируем стоимость билета
-        this.minAgeForAdmission = minAgeForAdmission;// Устанавливаем минимальный возраст для посещения
+        this.guestList = new ArrayList<>();
+        this.reviews = new ArrayList<>();
+        this.ticketPrice = ticketPrice;
+        this.minAgeForAdmission = minAgeForAdmission;
     }
 
     public Premiere(int id, String movieTitle, String date, String location, int ticketCount,
                     double budget, double ticketPrice, int minAgeForAdmission) {
-
-        if (movieTitle == null || movieTitle.trim().isEmpty()) {
-            throw new IllegalArgumentException("Название фильма не может быть пустым");
-        }
-        if (date == null || date.trim().isEmpty()) {
-            throw new IllegalArgumentException("Дата не может быть пустой");
-        }
-        if (location == null || location.trim().isEmpty()) {
-            throw new IllegalArgumentException("Место проведения не может быть пустым");
-        }
-        if (ticketCount <= 0) {
-            throw new IllegalArgumentException("Количество билетов должно быть больше 0");
-        }
-        if (budget <= 0) {
-            throw new IllegalArgumentException("Бюджет должен быть больше 0");
-        }
-
-        // Пробуем установить дату
+        this.id = id;  // Инициализируем id
+        this.movieTitle = movieTitle;
+        this.location = location;
+        this.ticketCount = ticketCount;
+        this.budget = budget;
+        this.ticketPrice = ticketPrice;
+        this.minAgeForAdmission = minAgeForAdmission;
+         // Вызов метода setDate для корректного парсинга даты
         setDate(date);
     }
+
     public void setDate(String date) {
         if (date == null || date.trim().isEmpty()) {
             throw new IllegalArgumentException("Дата не может быть пустой или null.");
@@ -79,41 +67,16 @@ public class Premiere {
         }
     }
 
+    public LocalDateTime getDate() {
+        return date;
+    }
 
     public int getId() {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public String getMovieTitle() {
         return movieTitle;
-    }
-
-    public void setMovieTitle(String movieTitle) {
-        this.movieTitle = movieTitle;
-    }
-
-    public LocalDateTime getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDateTime date) {
-        this.date = date;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public int getTicketCount() {
-        return ticketCount;
     }
 
     public void setTicketCount(int ticketCount) {
@@ -128,20 +91,8 @@ public class Premiere {
         this.ticketSold = ticketSold;
     }
 
-    public double getBudget() {
-        return budget;
-    }
-
-    public void setBudget(double budget) {
-        this.budget = budget;
-    }
-
     public List<String> getGuestList() {
         return guestList;
-    }
-
-    public void setGuestList(List<String> guestList) {
-        this.guestList = guestList;
     }
 
     public List<String> getReviews() {
@@ -150,22 +101,6 @@ public class Premiere {
 
     public void setReviews(List<String> reviews) {
         this.reviews = reviews;
-    }
-
-    public double getTicketPrice() {
-        return ticketPrice;
-    }
-
-    public void setTicketPrice(double ticketPrice) {
-        this.ticketPrice = ticketPrice;
-    }
-
-    public int getMinAgeForAdmission() {
-        return minAgeForAdmission;
-    }
-
-    public void setMinAgeForAdmission(int minAgeForAdmission) {
-        this.minAgeForAdmission = minAgeForAdmission;
     }
 
     // Метод для добавления гостей с проверкой возраста и минимального возраста премьеры
@@ -182,26 +117,21 @@ public class Premiere {
         logger.info("Гость " + guestName + " добавлен в список.");
     }
 
-    // Метод для проверки доступности бюджета
+    // Метод для проверки бюджета
     public boolean isBudgetAvailable(double budget) {
         // Проверка, чтобы бюджет премьеры не был отрицательным
-        if (budget < 0) {
+        if (budget <= 0) {
             logger.warning("Ошибка: Бюджет премьеры не может быть отрицательным.");
             return false;
         }
-
-        // Проверка, что доступный бюджет больше или равен необходимой сумме
-        if (budget >= cost) {
+        else   {
             return true; // Если бюджет достаточен, возвращаем true
-        } else {
-            logger.info("Достаточно бюджета : " + cost );
-            return true; // Если бюджета достаточно, возвращаем true
         }
     }
 
     // Метод для проверки, можем ли мы продать указанное количество билетов
     public boolean canSellTickets(int count) {
-        if (count < 0) {
+        if (count <= 0) {
             logger.warning("Ошибка: Количество билетов не может быть отрицательным.");
             return false;
         }
@@ -214,29 +144,26 @@ public class Premiere {
         }
     }
 
-    // Метод для продажи билетов
+    /// Метод для продажи билетов
     public void sellTickets(int count) {
+        // Проверяем, можем ли продать указанное количество билетов
         if (canSellTickets(count)) {
-            ticketSold += count;
-            logger.info(count + " билетов продано.");
+            // Если можем продать, то увеличиваем количество проданных билетов
+            ticketSold = ticketSold + count;
         } else {
+            // Если нет, выводим сообщение об ошибке
             logger.warning("Ошибка при продаже билетов: Недостаточно билетов.");
-            throw new IllegalArgumentException("Ошибка при продаже билетов: Недостаточно билетов.");
+            System.out.println("Ошибка: Недостаточно билетов для продажи.");
         }
     }
 
     /// Метод для возврата билетов
-    public void returnTickets(int count) {
-        if (count < 0) {
-            logger.warning("Ошибка: Количество возвращаемых билетов не может быть отрицательным.");
-            throw new IllegalArgumentException("Количество возвращаемых билетов не может быть отрицательным.");
+    public void returnTickets(int ticketsToReturn, int ticketsSold, boolean isRefundable) {
+        if (ticketsToReturn <= 0) {
+            throw new IllegalArgumentException("Ошибка при возврате билетов: количество билетов должно быть положительным.");
         }
-        if (ticketSold - count >= 0) {
-            ticketSold -= count;
-            logger.info("Возвращено " + count + " билетов. Общее количество проданных билетов: " + ticketSold);
-        } else {
-            logger.warning("Ошибка при возврате билетов: Невозможно вернуть больше билетов, чем было продано.");
-            throw new IllegalArgumentException("Невозможно вернуть больше билетов, чем было продано.");
+        if (ticketsToReturn > ticketsSold) {
+            throw new IllegalArgumentException("Ошибка при возврате билетов: Невозможно вернуть больше билетов, чем было продано.");
         }
     }
 
@@ -263,9 +190,9 @@ public class Premiere {
         return report; // Возвращаем строку отчета
     }
 
-    // Эмуляция отправки отчета по электронной почте
+    /*// Эмуляция отправки отчета по электронной почте
     public void sendReportByEmail() {
         String report = generateReport();
         logger.info("Отправка отчета по электронной почте: \n" + report);
-    }
+    }*/
 }

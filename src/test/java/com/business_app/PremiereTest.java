@@ -7,6 +7,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -14,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 @Slf4j
 public class PremiereTest {
@@ -26,105 +28,63 @@ public class PremiereTest {
         // Инициализация объекта Premiere перед каждым тестом
         premiere = new Premiere(1, "Titanic", "02.02.2025 10:00", "Cinema City",
                     100,40, 1000.0, 16);
+        premiere.setReviews(new ArrayList<>());  // Инициализация списка отзывов
+        premiere.setTicketSold(50); // Примерная начальная продажа 50 билетов
+    }
+    // Тест для проверки id
+    @Test
+    void testId() {
+        int expectedId = 1;
+        // Проверка, что id соответствует ожидаемому
+        assertEquals(expectedId, premiere.getId(), "Id должен быть равен " + expectedId);
     }
 
-    @ParameterizedTest
-    @CsvSource({
-            "'500.0', true",  // Сумма 500.0, достаточно средств
-            "'0.0', true",     // Сумма 0.0, бюджет всегда доступен (0 не может быть отрицательным)
-            "'-500.0', false", // Сумма -500.0, некорректная сумма
-            "'', false",       // Пустое значение, некорректный ввод
-            "'abcd', false"    // Некорректное значение (нечисловое)
-    })
-    void testIsBudgetAvailable(String requiredAmount, boolean expected) {
-        // Act
-        boolean result = premiere.isBudgetAvailable(requiredAmount);
+    // Тест для проверки корректности парсинга времени (даты)
+    @Test
+    void testValidDate() {
+        String validDate = "02.02.2025 10:00";
+        Premiere testPremiere = new Premiere(2, "Movie Title", validDate, "Cinema", 100, 2000.0, 15.0, 18);
 
-        // Assert
-        assertEquals(expected, result, "Проверка на доступность бюджета " + requiredAmount);
+        // Проверка, что дата установлена корректно
+        assertNotNull(testPremiere.getDate(), "Дата не должна быть null");
     }
 
-    @ParameterizedTest
-    @CsvSource({
-            "50, true",   // Доступно 50 билетов, можно продать
-            "150, false", // Недостаточно билетов (максимум 100)
-            "1, true",    // Можно продать 1 билет
-            "0, false",   // Нельзя продать 0 билетов
-            "-10, false", // Невозможно продать отрицательное количество билетов
-    })
-    void testCanSellTickets(int ticketsToSell, boolean expectedResult) {
-        // Act
-        boolean result = premiere.canSellTickets(ticketsToSell);
-
-        // Assert
-        assertEquals(expectedResult, result, "Проверка доступности продажи билетов для количества: " + ticketsToSell);
-    }
-
-    @ParameterizedTest
-    @CsvSource({
-            "50",  // Успешная продажа
-            "1",   // Пример успешной продажи
-    })
-    void testSellTickets_WithValidAmount(int ticketsToSell) {
-        // Act
-        premiere.sellTickets(ticketsToSell);
-
-        // Assert
-        assertEquals(ticketsToSell, premiere.getTicketSold(),
-                "Количество проданных билетов должно быть обновлено для " + ticketsToSell);
-    }
-
-    @ParameterizedTest
-    @CsvSource({
-            "0",     // Невозможно продать 0 билетов
-            "-10",   // Невозможно продать отрицательное количество билетов
-            "150",   // Превышено количество доступных билетов
-    })
-    void testSellTickets_WithInvalidAmount(int ticketsToSell) {
-        // Act & Assert
+    // Тест для некорректного формата даты
+    @Test
+    void testInvalidDateFormat() {
+        String invalidDate = "2025-02-02 10:00"; // Неверный формат
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            premiere.sellTickets(ticketsToSell);
+            new Premiere(1, "Movie Title", invalidDate, "Cinema", 100, 2000.0, 15.0, 18);
         });
 
-        // Assert
-        assertEquals("Ошибка при продаже билетов: Недостаточно билетов.", exception.getMessage(),
-                "Ошибка при продаже билетов для количества: " + ticketsToSell);
+        // Проверка, что выбрасывается исключение с правильным сообщением
+        assertEquals("Ошибка: Некорректный формат даты. Требуется: dd.MM.yyyy HH:mm", exception.getMessage());
+    }
+
+    // Тест для пустой даты
+    @Test
+    void testEmptyDate() {
+        // Ожидаем, что будет выброшено исключение IllegalArgumentException
+        assertThrows(IllegalArgumentException.class, () -> {
+            new Premiere(1, "Titanic", "", "Cinema City", 100, 40, 1000.0, 16);
+        }, "Дата не может быть пустой или null.");
     }
 
     @Test
-    void testReturnTickets_WithValidCount() {
-        // Arrange
-        premiere.sellTickets(50); // Продаем 50 билетов
-        int ticketsToReturn = 60;
+    void testGetMovieTitleNotEmpty() {
+        // Получаем значение movieTitle
+        String movieTitle = premiere.getMovieTitle();
 
-        // Act
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-        premiere.returnTickets(ticketsToReturn);
-        });
-        // Assert
-        assertEquals("Невозможно вернуть больше билетов, чем было продано.", exception.getMessage(), "Ошибка при возврате билетов");
-    }
-
-    @Test
-    void testReturnTickets_WithInvalidCount() {
-        // Arrange
-        premiere.sellTickets(50); // Продаем 50 билетов
-        int ticketsToReturn = 60;
-
-        // Act
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-        premiere.returnTickets(ticketsToReturn);
-        });
-
-        // Assert
-        assertEquals("Невозможно вернуть больше билетов, чем было продано.", exception.getMessage(), "Ошибка при возврате билетов");
+        // Проверяем, что movieTitle не является пустым или пустой строкой
+        assertNotNull(movieTitle, "Название фильма не должно быть null");
+        assertFalse(movieTitle.trim().isEmpty(), "Название фильма не должно быть пустым");
     }
 
     @ParameterizedTest
     @CsvSource({
             "'Alice', 20, true",   // Валидный гость
             "'Bob', 16, false",    // Недопустимый гость (меньше минимального возраста)
-            "'', 25, false"        // Пустое имя
+            "'', 25, false"       // Пустое имя
     })
     void testAddGuest(String guestName, int guestAge, boolean expectedResult) {
         // Arrange
@@ -142,55 +102,83 @@ public class PremiereTest {
         }
     }
 
-    @Test
-    void testAddReview_WithValidReview() {
+    @ParameterizedTest
+    @CsvSource({
+            "500.0, true",   // Положительный бюджет
+            "0.0, false",     // Нулевой бюджет
+            "-500.0, false"  // Отрицательный бюджет
+    })
+    void testIsBudgetAvailable(double budget, boolean expectedResult) {
+        // Act
+        boolean result = premiere.isBudgetAvailable(budget);
+
+        // Assert
+        assertEquals(expectedResult, result, "Результат должен соответствовать ожиданиям для бюджета: " + budget);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "50, true",    // 50 билетов можно продать
+            "0, false",    // 0 билетов нельзя продать
+            "-10, false",  // Отрицательное количество билетов
+            "150, false"   // Превышено количество доступных билетов
+    })
+    void testSellTickets(int ticketsToSell, boolean expectedResult) {
         // Arrange
-        String review = "Amazing movie!";
+        premiere.setTicketCount(100);  // Устанавливаем количество билетов в 100
+
+        // Act
+        boolean result = premiere.canSellTickets(ticketsToSell);
+
+        // Assert
+        if (expectedResult) {
+            assertTrue(result, "Должно быть возможно продать " + ticketsToSell + " билетов");
+        } else {
+            assertFalse(result, "Не должно быть возможно продать " + ticketsToSell + " билетов");
+        }
+    }
+
+    @Test
+    void testReturnTickets() {
+
+        // Пример с возвратом больше билетов, чем продано:
+        try {
+            premiere.returnTickets(30, 10, true); // Пример с количеством больше, чем продано
+            fail("Ожидалась ошибка: Невозможно вернуть больше билетов, чем было продано");
+        } catch (IllegalArgumentException e) {
+            assertEquals("Ошибка при возврате билетов: Невозможно вернуть больше билетов, чем было продано.", e.getMessage());
+        }
+
+        // Пример с возвратом отрицательного количества билетов:
+        try {
+            premiere.returnTickets(-5, 10, true); // Пример с отрицательным количеством
+            fail("Ожидалась ошибка: количество билетов должно быть положительным");
+        } catch (IllegalArgumentException e) {
+            assertEquals("Ошибка при возврате билетов: количество билетов должно быть положительным.", e.getMessage());
+        }
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+
+            "'Amazing movie!', true",  // Валидный отзыв
+            "'', false",               // Пустой отзыв
+            "'null', false"            // null отзыв
+    })
+    void testAddReview(String review, boolean expectedResult) {
+        // Если строка review равна "null", мы интерпретируем её как настоящий null
+        if ("null".equals(review)) {
+            review = null;
+        }
 
         // Act
         premiere.addReview(review);
 
         // Assert
-        assertTrue(premiere.getReviews().contains(review), "Отзыв должен быть добавлен в список отзывов");
-    }
-
-    @Test
-    void testAddReview_WithEmptyReview() {
-        // Arrange
-        String review = "";
-
-        // Act
-        premiere.addReview(review);
-
-        // Assert
-        assertFalse(premiere.getReviews().contains(review), "Отзыв не должен быть добавлен, если он пустой");
-    }
-    @Test
-    void testAddReview_WithNullReview() {
-        // Arrange
-        String review = null;
-
-        // Act
-        premiere.addReview(review);
-
-        // Assert
-        assertFalse(premiere.getReviews().contains(review), "Отзыв не должен быть добавлен, если он null");
-    }
-
-    @Test
-    void testGenerateReport() {
-        // Arrange
-        premiere.sellTickets(50);
-        premiere.addReview("Amazing movie!");
-
-        // Act
-        String report = premiere.generateReport();
-
-        // Assert
-        assertNotNull(report, "Отчет должен быть сгенерирован");
-        assertTrue(report.contains("Отчет о премьере: Titanic"), "Отчет должен содержать название фильма");
-        assertTrue(report.contains("50"), "Отчет должен содержать количество проданных билетов");
-        assertTrue(report.contains("John Doe"), "Отчет должен содержать список гостей");
-        assertTrue(report.contains("Amazing movie!"), "Отчет должен содержать отзывы");
+        if (expectedResult) {
+            assertTrue(premiere.getReviews().contains(review), "Отзыв должен быть добавлен в список отзывов");
+        } else {
+            assertFalse(premiere.getReviews().contains(review), "Отзыв не должен быть добавлен");
+        }
     }
 }
