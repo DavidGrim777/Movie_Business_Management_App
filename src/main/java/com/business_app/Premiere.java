@@ -145,15 +145,17 @@ public class Premiere {
     }
 
     /// Метод для продажи билетов
-    public void sellTickets(int count) {
+    public boolean sellTickets(int count) {
         // Проверяем, можем ли продать указанное количество билетов
         if (canSellTickets(count)) {
             // Если можем продать, то увеличиваем количество проданных билетов
             ticketSold = ticketSold + count;
+            return true;  // Продажа успешна
         } else {
             // Если нет, выводим сообщение об ошибке
             logger.warning("Ошибка при продаже билетов: Недостаточно билетов.");
             System.out.println("Ошибка: Недостаточно билетов для продажи.");
+            return false;  // Продажа не удалась
         }
     }
 

@@ -27,10 +27,10 @@ public class PremiereTest {
 
         // Инициализация объекта Premiere перед каждым тестом
         premiere = new Premiere(1, "Titanic", "02.02.2025 10:00", "Cinema City",
-                    100,40, 1000.0, 16);
+                100, 40, 1000.0, 16);
         premiere.setReviews(new ArrayList<>());  // Инициализация списка отзывов
-        premiere.setTicketSold(50); // Примерная начальная продажа 50 билетов
     }
+
     // Тест для проверки id
     @Test
     void testId() {
@@ -126,15 +126,19 @@ public class PremiereTest {
     void testSellTickets(int ticketsToSell, boolean expectedResult) {
         // Arrange
         premiere.setTicketCount(100);  // Устанавливаем количество билетов в 100
+        premiere.setTicketSold(50);   // Начальная продажа билетов — 50
 
         // Act
-        boolean result = premiere.canSellTickets(ticketsToSell);
+        boolean result = premiere.sellTickets(ticketsToSell);
+
+        // Assert: Проверка, что результат соответствует ожидаемому
+        assertEquals(expectedResult, result, "Статус продажи билетов неверен!");
 
         // Assert
         if (expectedResult) {
-            assertTrue(result, "Должно быть возможно продать " + ticketsToSell + " билетов");
+            assertEquals(50 + ticketsToSell, premiere.getTicketSold(), "Количество проданных билетов должно быть обновлено.");
         } else {
-            assertFalse(result, "Не должно быть возможно продать " + ticketsToSell + " билетов");
+            assertEquals(50, premiere.getTicketSold(), "Количество проданных билетов не должно измениться.");
         }
     }
 
