@@ -17,11 +17,6 @@ public class FinanceManager {
 
     // Метод для добавления финансовой записи
     public void addFinanceRecord(FinanceRecord record) {
-        // Проверка на корректность id
-        if (record.getId() <= 0) {
-            log.warn("Ошибка: id должно быть больше 0.");
-            throw new IllegalArgumentException("id должно быть больше 0.");
-        }
         // Проверка на сумму
         if (record.getAmount() <= 0) {
             log.warn("Ошибка: сумма должна быть больше 0.");

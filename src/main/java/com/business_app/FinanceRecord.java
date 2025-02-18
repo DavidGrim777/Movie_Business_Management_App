@@ -2,13 +2,13 @@ package com.business_app;
 
 public class FinanceRecord {
 
-    private final int id;
+    private String id;
     private FinanceType type; // тип записи доход/расход
     private double amount; // сумма
     private String description; // описание
     private String date;
 
-    public FinanceRecord(int id, FinanceType type, double amount, String description, String date) {
+    public FinanceRecord(String id, FinanceType type, double amount, String description, String date) {
         this.id = id;
         this.type = type;
         this.amount = amount;
@@ -16,7 +16,7 @@ public class FinanceRecord {
         this.date = date;
     }
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
