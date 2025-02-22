@@ -24,30 +24,13 @@ public class FinanceTest {
             "1, INCOME, 1000.0, Salary, 2025-02-11",   // Допустимая запись
             "2, EXPENSE, 200.0, Groceries, 2025-02-10"  // Допустимая запись
     })
-    void testAddFinanceRecord(int id, FinanceType type, double amount, String description, String date) {
+    void testAddFinanceRecord(String id, FinanceType type, double amount, String description, String date) {
         FinanceRecord record = new FinanceRecord(id, type, amount, description, date);
 
         financeManager.addFinanceRecord(record);
 
         assertEquals(1, financeManager.getAllFinanceRecords().size());
         assertEquals(record, financeManager.getAllFinanceRecords().get(0));
-    }
-
-    //Параметризованный тест для некорректного ID
-    @ParameterizedTest
-    @CsvSource({
-            "0, INCOME, 1000.0, Invalid ID, 2025-02-11",  // Неверный id
-            "-1, EXPENSE, 200.0, Invalid ID, 2025-02-10"  // Неверный id
-    })
-    void testAddFinanceRecordWithInvalidId(int id, String type, double amount, String description, String date) {
-        FinanceType financeType = FinanceType.valueOf(type);
-        FinanceRecord record = new FinanceRecord(id, financeType, amount, description, date);
-
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            financeManager.addFinanceRecord(record);
-        });
-
-        assertEquals("id должно быть больше 0.", exception.getMessage());
     }
 
     // Параметризованный тест для расчета общих расходов
@@ -58,7 +41,7 @@ public class FinanceTest {
             "150.0, Water, 2025-02-09"
     })
     void testCalculateTotalExpenses(double amount, String description, String date) {
-        FinanceRecord expense = new FinanceRecord(1, FinanceType.EXPENSE, amount, description, date);
+        FinanceRecord expense = new FinanceRecord("1", FinanceType.EXPENSE, amount, description, date);
         financeManager.addFinanceRecord(expense);
 
         double totalExpenses = financeManager.calculateTotalExpenses();
@@ -72,7 +55,7 @@ public class FinanceTest {
             "500.0, Freelance, 2025-02-11"
     })
     void testCalculateTotalIncome(double amount, String description, String date) {
-        FinanceRecord income = new FinanceRecord(1, FinanceType.INCOME, amount, description, date);
+        FinanceRecord income = new FinanceRecord("1", FinanceType.INCOME, amount, description, date);
         financeManager.addFinanceRecord(income);
 
         double totalIncome = financeManager.calculateTotalIncome();
@@ -86,7 +69,7 @@ public class FinanceTest {
             "0.0, Invalid expense, 2025-02-11"  // Неверная сумма
     })
     void testAddFinanceRecordWithInvalidAmount(double amount, String description, String date) {
-        FinanceRecord invalidRecord = new FinanceRecord(1, FinanceType.EXPENSE, amount, description, date);
+        FinanceRecord invalidRecord = new FinanceRecord("1", FinanceType.EXPENSE, amount, description, date);
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             financeManager.addFinanceRecord(invalidRecord);
@@ -100,7 +83,7 @@ public class FinanceTest {
             "1, INCOME, 1000.0, , 2025-02-11",  // Пустое описание
             "2, EXPENSE, 200.0, , 2025-02-10" , // Пустое описание
     })
-    void testAddFinanceRecordWithEmptyDescription(int id, FinanceType type, double amount, String description, String date) {
+    void testAddFinanceRecordWithEmptyDescription(String id, FinanceType type, double amount, String description, String date) {
         FinanceRecord record = new FinanceRecord(id, type, amount, description, date);
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
@@ -117,7 +100,7 @@ public class FinanceTest {
             "2, EXPENSE, 200.0, Groceries, 2025-02-45", // Некорректная дата
             "3, EXPENSE, 200.0, Groceries, 12025-02-02"  // Некорректная дата
     })
-    void testAddFinanceRecordWithInvalidDate(int id, FinanceType type, double amount, String description, String date) {
+    void testAddFinanceRecordWithInvalidDate(String id, FinanceType type, double amount, String description, String date) {
         FinanceRecord record = new FinanceRecord(id, type, amount, description, date);
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
@@ -131,7 +114,7 @@ public class FinanceTest {
     @Test
     void testAddFinanceRecordWithFinanceTypeNull() {
         // Arrange: подготовка данных
-        FinanceRecord invalidType = new FinanceRecord(1, null, 1000.0, "Salary", "2025-02-11");
+        FinanceRecord invalidType = new FinanceRecord("1", null, 1000.0, "Salary", "2025-02-11");
 
         // Act & Assert: проверка выбрасывания исключения при добавлении записи с некорректным типом null
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
@@ -146,7 +129,7 @@ public class FinanceTest {
     @Test
     void testAddFinanceRecordWithInvalidType() {
         // Arrange: подготовка данных с неправильным типом записи
-        FinanceRecord invalidRecord = new FinanceRecord(1, null, 1000.0, "Invalid type", "2025-02-11");
+        FinanceRecord invalidRecord = new FinanceRecord("1", null, 1000.0, "Invalid type", "2025-02-11");
 
         // Act & Assert: проверка выбрасывания исключения при добавлении записи с некорректным типом
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
@@ -160,7 +143,7 @@ public class FinanceTest {
     @Test
     void testGenerateFinanceReport() {
         // Arrange: подготовка данных
-        FinanceRecord income = new FinanceRecord(1, FinanceType.INCOME, 1000.0, "Salary", "2025-02-10");
+        FinanceRecord income = new FinanceRecord("1", FinanceType.INCOME, 1000.0, "Salary", "2025-02-10");
         financeManager.addFinanceRecord(income);
 
         // Act: генерация отчета
@@ -171,7 +154,7 @@ public class FinanceTest {
     @Test
     void testExportToCSV() {
         // Arrange: подготовка данных
-        FinanceRecord income = new FinanceRecord(1, FinanceType.INCOME, 1000.0, "Salary", "2025-02-10");
+        FinanceRecord income = new FinanceRecord("1", FinanceType.INCOME, 1000.0, "Salary", "2025-02-10");
         financeManager.addFinanceRecord(income);
 
         // Act: экспорт в CSV
