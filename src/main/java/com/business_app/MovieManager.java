@@ -22,8 +22,6 @@ class MovieManager {
             return;
         }
         movies.add(movie);
-        System.out.println("Фильм добавлен: " + movie.getTitle());
-        log.info("Фильм добавлен: {}", movie.getTitle());
     }
 
     // Метод для удаления фильма по ID

@@ -233,19 +233,16 @@ public class Movie {
         switch (newStatus) {
             case PLANNED:
                 System.out.println("Фильм теперь находится в производстве.");
-                log.info("Фильм теперь находится в производстве.");
                 break;
             case IN_PROGRESS:
                 System.out.println("Фильм теперь выпущен.");
-                log.info("Фильм теперь выпущен.");
                 break;
             case COMPLETED:
                 System.out.println("Фильм отменён.");
-                log.info("Фильм отменён.");
                 break;
             default:
                 System.out.println("Неизвестный статус.");
-                log.warn("Неизвестный статус.");
+
         }
 
         if (status == newStatus) {
