@@ -2,8 +2,6 @@ package com.business_app;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 @Slf4j
@@ -28,22 +26,44 @@ public class FinanceManager {
             log.warn("Ошибка: некорректный тип записи.");
             throw new IllegalArgumentException("Некорректный тип записи: " + record.getType());
         }
+         // Проверка на корректность даты
+        if (record.getDate() == null) {
+            log.warn("Ошибка: дата не может быть пустой.");
+            throw new IllegalArgumentException("Дата не может быть пустой.");
+        }
+
         // Проверка на описание
         if (record.getDescription() == null || record.getDescription().isEmpty()) {
             log.warn("Ошибка: описание не может быть пустым.");
             throw new IllegalArgumentException("Описание не может быть пустым.");
         }
 
-        // Проверка на корректность даты
-        try {
-            LocalDate.parse(record.getDate());  // Преобразование строки в дату
-        } catch (DateTimeParseException e) {
-            log.warn("Ошибка: некорректный формат даты.");
-            throw new IllegalArgumentException("Некорректный формат даты.");
-        }
-
         financeRecords.add(record);
         log.info("Финансовая запись добавлена: " + record);
+    }
+    // Метод для проверки наличия записей
+    public boolean hasRecords() {
+        return !financeRecords.isEmpty();  // Возвращаем true, если список не пустой
+    }
+
+    public void removeFinanceRecord(String recordId) {
+        // Ищем запись с указанным ID
+        FinanceRecord recordToRemove = null;
+        for (FinanceRecord record : financeRecords) {
+            if (record.getId().equals(recordId)) {
+                recordToRemove = record;
+                break;
+            }
+        }
+
+        // Если запись найдена, удаляем её
+        if (recordToRemove != null) {
+            financeRecords.remove(recordToRemove);
+            log.info("Финансовая запись с ID " + recordId + " удалена.");
+        } else {
+            log.warn("Ошибка: Запись с ID " + recordId + " не найдена.");
+            throw new IllegalArgumentException("Запись с таким ID не найдена.");
+        }
     }
 
     // Метод для получения всех записей

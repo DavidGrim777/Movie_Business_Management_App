@@ -1,14 +1,16 @@
 package com.business_app;
 
+import java.time.LocalDate;
+
 public class FinanceRecord {
 
     private String id;
     private FinanceType type; // тип записи доход/расход
     private double amount; // сумма
     private String description; // описание
-    private String date;
+    private LocalDate date;
 
-    public FinanceRecord(String id, FinanceType type, double amount, String description, String date) {
+    public FinanceRecord(String id, FinanceType type, double amount, String description, LocalDate date) {
         this.id = id;
         this.type = type;
         this.amount = amount;
@@ -16,10 +18,12 @@ public class FinanceRecord {
         this.date = date;
     }
 
+    public LocalDate getDate() {
+        return date;
+    }
     public String getId() {
         return id;
     }
-
 
     public FinanceType getType() {
         return type;
@@ -33,22 +37,9 @@ public class FinanceRecord {
         return description;
     }
 
-    public String getDate() {
-        return date;
-    }
-
-    public void generateReport() {
-        String report = "Отчет о финансовой записи:\n";
-        report += "ID: " + id + "\n";
-        report += "Тип: " + type + "\n";
-        report += "Сумма: " + String.format("%.2f", amount) + "\n";
-        report += "Описание: " + description + "\n";
-        report += "Дата: " + date + "\n";
-        System.out.println(report);
-    }
-
     @Override
     public String toString() {
-        return "FinanceRecord{id=" + id + ", тип=" + type + ", сумма=" + amount + ", описание='" + description + "', дата='" + date + "'}";
+        return "FinanceRecord{id=" + id + ", тип=" + type + ", сумма=" + amount + ", описание='"
+                + description + "', дата='" + date + "'}";
     }
 }
