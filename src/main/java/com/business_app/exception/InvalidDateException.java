@@ -1,4 +1,4 @@
-package com.business_app.exeption;
+package com.business_app.exception;
 
 public class InvalidDateException extends RuntimeException {
 
