@@ -1,18 +1,20 @@
 package com.business_app;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
 public class PremiereManager {
 
     private static final Logger logger = Logger.getLogger(PremiereManager.class.getName());
-    private Map<Integer, Premiere> premiereMap = new HashMap<>();
+    private Map<String, Premiere> premiereMap;
 
     public PremiereManager() {
         this.premiereMap = new HashMap<>();
+    }
+
+    public PremiereManager(Map<String, Premiere> premiereMap) {
+        this.premiereMap = premiereMap;
     }
 
     // Метод для добавления новой премьеры в список
@@ -21,8 +23,31 @@ public class PremiereManager {
             logger.warning("Попытка добавить null в список премьеры.");
             throw new IllegalArgumentException("Премьера не может быть null.");
         }
+        // Устанавливаем количество билетов в премьере
         premiereMap.put(premiere.getId(), premiere);
-        logger.info("Премьера добавлена: " + premiere.getMovieTitle());
+        System.out.println("Премьера фильма: " + premiere.getMovieTitle() + " добавлена.");
+    }
+
+    //Метод для поиска премьеры по ID.
+    public Premiere findPremiereById(String id) {
+        Premiere premiere = premiereMap.get(id);
+        if (premiere == null) {
+            System.out.println("Премьера с ID " + id + " не найдена.");
+            logger.warning("Премьера с ID " + id + " не найдена.");
+        } else {
+            System.out.println("Премьера найдена по ID: " + id);
+        }
+        return premiere;
+    }
+
+    //Метод для удаления премьеры по ID
+    public void removePremiereById(String id) {
+        Premiere premiere = premiereMap.remove(id);
+        if (premiere == null) {
+            logger.warning("Не удалось удалить премьеру с ID " + id + ": Премьера не найдена.");
+        } else {
+            System.out.println("Премьера с ID " + id + " удалена.");
+        }
     }
 
     // Метод для генерации отчета по всем премьерам
@@ -44,35 +69,8 @@ public class PremiereManager {
             }
         }
     }
-
-    //Метод для получения списка всех премьер
-    public List<Premiere> getPremieres() {
-        return new ArrayList<>();
-    }
-
-    //Метод для поиска премьеры по ID.
-    public Premiere findPremiereById(int id) {
-        Premiere premiere = premiereMap.get(id);
-        if (premiere == null) {
-            logger.warning("Премьера с ID " + id + " не найдена.");
-        } else {
-            logger.info("Премьера найдена по ID: " + id);
-        }
-        return premiere;
-    }
-
-    //Метод для удаления премьеры по ID
-    public void removePremiereById(int id) {
-        Premiere premiere = premiereMap.remove(id);
-        if (premiere == null) {
-            logger.warning("Не удалось удалить премьеру с ID " + id + ": Премьера не найдена.");
-        } else {
-            logger.info("Премьера с ID " + id + " удалена.");
-        }
-    }
-
-    //Метод для получения информации о количестве премьер
-    public int getPremiereCount() {
-        return premiereMap.size();
+    // Метод для получения карты премьеров
+    public Map<String, Premiere> getPremiereMap() {
+        return premiereMap;
     }
 }
