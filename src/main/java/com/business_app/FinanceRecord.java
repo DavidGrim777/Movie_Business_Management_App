@@ -1,21 +1,16 @@
 package com.business_app;
 
-import com.github.javafaker.Finance;
+import java.time.LocalDate;
 
 public class FinanceRecord {
-    public FinanceRecord(String recordId, double amount, FinanceType type, String description) {
 
-    }
+    private String id;
+    private FinanceType type; // тип записи доход/расход
+    private double amount; // сумма
+    private String description; // описание
+    private LocalDate date;
 
-    public enum Type {INCOME, EXPENSE}  //TODO
-
-    private int id;
-    private FinanceType type;
-    private double amount;
-    private String description;
-    private String date;
-
-    public FinanceRecord(int id, FinanceType type, double amount, String description, String date) {
+    public FinanceRecord(String id, FinanceType type, double amount, String description, LocalDate date) {
         this.id = id;
         this.type = type;
         this.amount = amount;
@@ -23,7 +18,10 @@ public class FinanceRecord {
         this.date = date;
     }
 
-    public int getId() {
+    public LocalDate getDate() {
+        return date;
+    }
+    public String getId() {
         return id;
     }
 
@@ -39,7 +37,9 @@ public class FinanceRecord {
         return description;
     }
 
-    public String getDate() {
-        return date;
+    @Override
+    public String toString() {
+        return "FinanceRecord{id=" + id + ", тип=" + type + ", сумма=" + amount + ", описание='"
+                + description + "', дата='" + date + "'}";
     }
 }
