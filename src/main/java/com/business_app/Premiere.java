@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 public class Premiere {
 
     private static final Logger logger = Logger.getLogger(Premiere.class.getName());
-    private static final String DATE_FORMAT = "dd-MM-yyyy HH:mm:ss z";
+    private static final String DATE_FORMAT = "dd.MM.yyyy HH:mm z";
 
     private String id;
     private String movieTitle;
@@ -40,16 +40,18 @@ public class Premiere {
         this.minAgeForAdmission = 18;
 
         // Вызов метода setDate для корректного парсинга даты
-        setDate(String.valueOf(date));
+        // Используем форматирование ZonedDateTime в строку
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
+        String formattedDate = date.format(formatter);
+        setDate(formattedDate);
     }
-
     public void setDate(String date) {
         if (date == null || date.trim().isEmpty()) {
             throw new IllegalArgumentException("Дата не может быть пустой или null.");
         }
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
-            this.date = ZonedDateTime.parse(date); // Используем ZonedDateTime для парсинга
+            this.date = ZonedDateTime.parse(date,formatter); // Используем ZonedDateTime для парсинга
         } catch (Exception e) {
             logger.warning("Некорректный формат даты. Требуется: " + DATE_FORMAT);
             throw new IllegalArgumentException("Ошибка: Некорректный формат даты. Требуется: " + DATE_FORMAT);
@@ -63,34 +65,72 @@ public class Premiere {
         this.ticketCount = ticketCount;
     }
 
-
     public String getId() {
         return id;
     }
 
-    public ZonedDateTime getDate() {
-        return date;
+    public void setId(String id) {
+        if (id == null || id.trim().isEmpty()) {
+            throw new IllegalArgumentException("ID не может быть пустым или null.");
+        }
+        if (id.length() > 30) {
+            throw new IllegalArgumentException("ID не может быть длиннее 30 символов.");
+        }
+        this.id = id;
     }
 
     public String getMovieTitle() {
         return movieTitle;
     }
 
+    public ZonedDateTime getDate() {
+        return date;
+    }
+
     public String getLocation() {
+        if (location == null || location.isEmpty()) {
+            return "Местоположение не указано";
+        }
         return location;
     }
 
-    public int getTicketSold() {
-        return ticketSold;
+    public void setLocation(String location) {
+        this.location = location;
     }
 
     public int getTicketCount() {
         return ticketCount;
     }
 
+
+    public int getTicketSold() {
+        return ticketSold;
+    }
+
+    public void setTicketSold(int ticketSold) {
+        this.ticketSold = ticketSold;
+    }
+
     public double getBudget() {
         return budget;
     }
+
+    public void setBudget(double budget) {
+        this.budget = budget;
+    }
+
+    public List<String> getGuestList() {
+        return guestList;
+    }
+
+    public List<String> getReviews() {
+        return reviews;
+    }
+
+    public void setReviews(List<String> reviews) {
+        this.reviews = reviews;
+    }
+
 
     // Метод для добавления гостей с проверкой возраста и минимального возраста премьеры
     public void addGuest(String guestName, int guestAge) {
@@ -148,19 +188,13 @@ public class Premiere {
         // Уменьшаем количество проданных билетов
         ticketSold -= ticketsToReturn;
 
-        // Возвращаем билеты в доступные для продажи
-        ticketCount += ticketsToReturn;
+        // Возвращаем билеты в доступные для продажи, но не превышаем начальное количество билетов
+        ticketCount = initialTicketCount - ticketSold;
 
-        // Ограничиваем количество билетов максимальным значением (не превышать начальное количество)
-        if (ticketCount > initialTicketCount) {
-            ticketCount = initialTicketCount;
-        }
-        // Вычисляем оставшиеся билеты для продажи
-        int remainingTickets = initialTicketCount - ticketSold;
 
         System.out.println("Проданные билеты: " + ticketsSold);
         System.out.println("Возвращено " + ticketsToReturn + " билетов.");
-        System.out.println("Оставшиеся билеты для продажи: " + remainingTickets);
+        System.out.println("Оставшиеся билеты для продажи: " + ticketCount);
     }
 
     // Метод для проверки бюджета
@@ -199,7 +233,7 @@ public class Premiere {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         String formattedDate = date.format(formatter);  // Форматируем дату
         String report = "Отчет о премьере: " + movieTitle + "\n" +
-                "Дата: " + date + "\n" +
+                "Дата: " + formattedDate + "\n" +
                 "Место проведения: " + location + "\n" +
                 "Продано билетов: " + ticketSold + "\n" +
                 "Общая прибыль: $" + totalRevenue + "\n" +

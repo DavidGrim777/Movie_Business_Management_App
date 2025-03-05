@@ -9,10 +9,11 @@ import java.util.logging.Logger;
 public class PremiereManager {
 
     private static final Logger logger = Logger.getLogger(PremiereManager.class.getName());
-    private Map<Integer, Premiere> premiereMap = new HashMap<>();
+    private Map<String, Premiere> premiereMap = new HashMap<>();
 
-    public PremiereManager() {
-        this.premiereMap = new HashMap<>();
+
+    public Map<String, Premiere> getPremiereMap() {
+        return premiereMap;
     }
 
     // Метод для добавления новой премьеры в список
@@ -20,6 +21,10 @@ public class PremiereManager {
         if (premiere == null) {
             logger.warning("Попытка добавить null в список премьеры.");
             throw new IllegalArgumentException("Премьера не может быть null.");
+        }
+        if (premiere.getId() == null) {
+            logger.warning("Попытка добавить премьеру без ID.");
+            throw new IllegalArgumentException("ID премьеры не может быть null.");
         }
         premiereMap.put(premiere.getId(), premiere);
         logger.info("Премьера добавлена: " + premiere.getMovieTitle());
@@ -37,7 +42,7 @@ public class PremiereManager {
             try {
                 String report = premiere.generateReport();
                 System.out.println(report); // Генерируем отчет для каждой премьеры
-                logger.info("Отчет о премьере сгенерирован для: " + premiere.getMovieTitle());
+                System.out.println("Отчет о премьере сгенерирован для: " + premiere.getMovieTitle());
                 logger.info(report); // Логируем отчет о премьере
             } catch (Exception e) {
                 logger.warning("Ошибка при генерации отчета для премьеры " + premiere.getMovieTitle() + ": " + e.getMessage());
@@ -45,13 +50,8 @@ public class PremiereManager {
         }
     }
 
-    //Метод для получения списка всех премьер
-    public List<Premiere> getPremieres() {
-        return new ArrayList<>();
-    }
-
     //Метод для поиска премьеры по ID.
-    public Premiere findPremiereById(int id) {
+    public Premiere findPremiereById(String id) {
         Premiere premiere = premiereMap.get(id);
         if (premiere == null) {
             logger.warning("Премьера с ID " + id + " не найдена.");
@@ -62,7 +62,7 @@ public class PremiereManager {
     }
 
     //Метод для удаления премьеры по ID
-    public void removePremiereById(int id) {
+    public void removePremiereById(String id) {
         Premiere premiere = premiereMap.remove(id);
         if (premiere == null) {
             logger.warning("Не удалось удалить премьеру с ID " + id + ": Премьера не найдена.");
