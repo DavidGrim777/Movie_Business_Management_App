@@ -2,8 +2,15 @@ package com.business_app;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.BufferedWriter;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+
 @Slf4j
 public class FinanceManager {
 
@@ -11,6 +18,7 @@ public class FinanceManager {
 
     public FinanceManager() {
         this.financeRecords = new ArrayList<>();
+        loadFinanceRecordsFromFile();  // Загружаем данные из файла при создании объекта
     }
 
     // Метод для добавления финансовой записи
@@ -26,7 +34,7 @@ public class FinanceManager {
             log.warn("Ошибка: некорректный тип записи.");
             throw new IllegalArgumentException("Некорректный тип записи: " + record.getType());
         }
-         // Проверка на корректность даты
+        // Проверка на корректность даты
         if (record.getDate() == null) {
             log.warn("Ошибка: дата не может быть пустой.");
             throw new IllegalArgumentException("Дата не может быть пустой.");
@@ -41,8 +49,10 @@ public class FinanceManager {
         financeRecords.add(record);
         log.info("Финансовая запись добавлена: " + record);
     }
+
     // Метод для проверки наличия записей
     public boolean hasRecords() {
+        System.out.println("Размер коллекции записей: " + financeRecords.size());
         return !financeRecords.isEmpty();  // Возвращаем true, если список не пустой
     }
 
@@ -97,23 +107,131 @@ public class FinanceManager {
         return totalIncome;  // Возвращаем общую сумму доходов
     }
 
-    /// Генерация финансового отчета (например, в формате CSV или PDF)
-    public void generateFinanceReport() {
-        // Пример генерации отчета: просто выводим все записи
-        System.out.println("Финансовый отчет:");
-        for (FinanceRecord record : financeRecords) {
-            System.out.println("ID: " + record.getId() + ", Тип: " + record.getType() +
-                    ", Сумма: " + record.getAmount() + ", Описание: " + record.getDescription() +
-                    ", Дата: " + record.getDate());
+    // Метод для добавления бюджета для премьеры
+    public void addPremiereBudget(Premiere premiere, double budgetToAdd) {
+        if (budgetToAdd > 0) {
+            premiere.addBudget(budgetToAdd); // Увеличиваем бюджет премьеры
+
+            // Создаем запись о доходе
+            FinanceRecord record = new FinanceRecord(
+                    String.valueOf(financeRecords.size() + 1), // Преобразуем число в строку для ID
+                    FinanceType.INCOME, // Тип - доход
+                    budgetToAdd, // Сумма добавленного бюджета
+                    "Бюджет для премьеры: " + premiere.getMovieTitle(), // Описание
+                    LocalDate.now() // Дата
+            );
+
+            financeRecords.add(record); // Добавляем запись в список финансовых операций
+            System.out.println("Финансовая запись добавлена: " + record.getDescription() + ", $" + record.getAmount());
+        } else {
+            System.out.println("Ошибка: бюджет должен быть больше 0.");
         }
     }
 
-    // Экспорт в CSV
-    public void exportToCSV() {
-        System.out.println("Экспорт в CSV...");
-        System.out.println("ID, Тип, Сумма, Описание, Дата");
-        for (FinanceRecord record : financeRecords) {
-            System.out.println(record.getId() + ", " + record.getType() + ", " + record.getAmount() + ", " + record.getDescription() + ", " + record.getDate());
+    // Метод для получения суммы продаж билетов
+    public double getTicketSales() {
+        return financeRecords.stream()
+                .filter(record -> record.getType() == FinanceType.INCOME && record.getDescription().contains("Продажа билетов"))
+                .mapToDouble(FinanceRecord::getAmount)
+                .sum();
+    }
+
+
+    // Метод для получения суммы возвратов билетов
+    public double getTicketRefunds() {
+        return financeRecords.stream()
+                .filter(record -> record.getType() == FinanceType.EXPENSE && record.getDescription().contains("Возврат билетов"))
+                .mapToDouble(FinanceRecord::getAmount)
+                .sum();
+    }
+
+    // Генерация финансового отчета в формате CSV
+    public void generateFinanceReport(boolean printToConsole) {
+        String fileName = "finance_records.csv";  // Имя файла для сохранения
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+            // Записываем заголовок CSV
+            writer.write("ID, Тип, Сумма, Описание, Дата");
+            writer.newLine();  // Переход на новую строку
+
+            if (printToConsole) {
+            // Выводим на экран и записываем в файл
+            System.out.println("Финансовый отчет:");}
+            // Добавляем информацию о продаже билетов, возвратах и бюджете премьеры
+            double ticketSales = getTicketSales();
+            double ticketRefunds = getTicketRefunds();
+
+            // Прежде чем начать добавлять записи из financeRecords, добавим информацию о продажах билетов и возвратах
+            String ticketSalesRecord = "Продажа билетов, " + ticketSales + ", Доход от продажи билетов, " + LocalDate.now();
+            String ticketRefundsRecord = "Возврат билетов, " + ticketRefunds + ", Расходы на возврат билетов, " + LocalDate.now();
+
+
+            if (printToConsole) {
+                System.out.println(ticketSalesRecord);  // Выводим строку по продаже билетов
+                System.out.println(ticketRefundsRecord);  // Выводим строку по возврату билетов
+            }
+            // Записываем их в файл
+            writer.write(ticketSalesRecord);
+            writer.newLine();
+            writer.write(ticketRefundsRecord);
+            writer.newLine();
+
+            // Теперь добавляем обычные записи из financeRecords
+            for (FinanceRecord record : financeRecords) {
+                String recordLine = record.getId() + ", " + record.getType() + ", " + record.getAmount() +
+                        ", " + record.getDescription() + ", " + record.getDate();
+                if (printToConsole) {
+                    System.out.println(recordLine);  // Выводим строку
+                }
+                writer.write(recordLine);  // Запись в файл
+                writer.newLine();  // Переход на новую строку
+            }
+            System.out.println("Данные успешно экспортированы в файл " + fileName);
+        } catch (IOException e) {
+            System.out.println("Ошибка при записи в файл: " + e.getMessage());
+        }
+    }
+
+    // Метод для загрузки финансовых записей из файла
+    public void loadFinanceRecordsFromFile() {
+        String fileName = "finance_records.csv";  // Имя файла для загрузки
+        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
+            String line;
+            // Пропустить заголовок
+            reader.readLine();
+            // Читаем строки и добавляем записи в список
+            while ((line = reader.readLine()) != null) {
+                String[] data = line.split(", ");
+                if (data.length == 5) {
+                    String id = data[0];
+                    String typeString = data[1];
+                    double amount = Double.parseDouble(data[2]);
+                    String description = data[3];
+                    LocalDate date = LocalDate.parse(data[4]);
+
+                    FinanceType type;
+                    try {
+                        // Если в файле встречается "Бюджет", заменяем его на INCOME
+                        if (typeString.equalsIgnoreCase("Бюджет")) {
+                            type = FinanceType.INCOME;
+                        } else {
+                            type = FinanceType.valueOf(typeString);
+                        }
+                    } catch (IllegalArgumentException e) {
+                        log.warn("Неизвестный тип записи: " + typeString + ". Запись будет пропущена.");
+                        continue; // Пропустить некорректную запись
+                    }
+
+
+                    // Создаем и добавляем новую финансовую запись
+                    FinanceRecord record = new FinanceRecord(id, type, amount, description, date);
+                    financeRecords.add(record);
+                }
+            }
+            log.info("Финансовые записи успешно загружены из файла: " + fileName);
+            System.out.println("Размер загруженных записей: " + financeRecords.size()); // Выводим размер коллекции
+        } catch (IOException e) {
+            log.warn("Ошибка при загрузке финансовых записей из файла: " + e.getMessage());
+            System.out.println("Ошибка при загрузке финансовых записей из файла: " + e.getMessage());
         }
     }
 }

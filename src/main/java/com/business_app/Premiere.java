@@ -1,12 +1,22 @@
 package com.business_app;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-public class Premiere {
+public class Premiere implements Serializable {
 
     private static final Logger logger = Logger.getLogger(Premiere.class.getName());
     private static final String DATE_FORMAT = "dd.MM.yyyy HH:mm z";
@@ -44,6 +54,8 @@ public class Premiere {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
         String formattedDate = date.format(formatter);
         setDate(formattedDate);
+
+        loadGuestsFromFile();
     }
     public void setDate(String date) {
         if (date == null || date.trim().isEmpty()) {
@@ -63,6 +75,7 @@ public class Premiere {
             throw new IllegalArgumentException("Количество билетов не может быть отрицательным.");
         }
         this.ticketCount = ticketCount;
+
     }
 
     public String getId() {
@@ -94,9 +107,6 @@ public class Premiere {
         return location;
     }
 
-    public void setLocation(String location) {
-        this.location = location;
-    }
 
     public int getTicketCount() {
         return ticketCount;
@@ -134,6 +144,7 @@ public class Premiere {
 
     // Метод для добавления гостей с проверкой возраста и минимального возраста премьеры
     public void addGuest(String guestName, int guestAge) {
+
         if (guestName == null || guestName.trim().isEmpty()) {
             logger.warning("Ошибка при добавлении гостя: Имя гостя не может быть пустым.");
             return;
@@ -144,6 +155,8 @@ public class Premiere {
         }
         guestList.add(guestName); // Добавляем гостя в список
         System.out.println ("Гость " + guestName + " добавлен в список.");
+
+        saveGuestsToFile(); // Сохраняем гостей в файл
     }
 
     // Метод для проверки, можем ли мы продать указанное количество билетов
@@ -221,9 +234,70 @@ public class Premiere {
     public void addReview(String review) {
         if (review == null || review.trim().isEmpty()) {
             logger.warning("Ошибка при добавлении отзыва: отзыв не может быть пустым.");
+            System.out.println("Ошибка при добавлении отзыва: отзыв не может быть пустым.");
         } else {
             reviews.add(review); // Добавляем отзыв в список
             System.out.println ("Отзыв добавлен: " + review);
+            saveReviewsToFile(); // Сохраняем отзывы в текстовый файл
+        }
+    }
+    // Метод для сохранения отзывов в текстовый файл
+    private void saveReviewsToFile() {
+        String fileName = id + "_reviews.txt"; // Используем ID премьеры для имени файла
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, true))) { // Открываем файл в режиме добавления
+            for (String review : reviews) {
+                writer.write(review);  // Записываем отзыв в файл
+                writer.newLine();  // Переходим на новую строку после каждого отзыва
+            }
+            System.out.println("Отзывы для премьеры " + id + " сохранены в файл: " + fileName);
+        } catch (IOException e) {
+            System.out.println("Ошибка при сохранении отзывов для премьеры " + id + ": " + e.getMessage());
+            logger.warning("Ошибка при сохранении отзывов в файл для премьеры " + id + ": " + e.getMessage());
+        }
+    }
+
+    // Метод для загрузки отзывов из текстового файла
+    private void loadReviewsFromFile() {
+        String fileName = id + "_reviews.txt"; // Используем ID премьеры для имени файла
+        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                reviews.add(line); // Добавляем каждый отзыв в список
+            }
+            System.out.println("Отзывы для премьеры " + id + " загружены из файла: " + fileName);
+        } catch (IOException e) {
+            System.out.println("Ошибка при загрузке отзывов для премьеры " + id + ": " + e.getMessage());
+            logger.warning("Ошибка при загрузке отзывов из файла для премьеры " + id + ": " + e.getMessage());
+        }
+    }
+
+    // Метод для сохранения гостей в файл
+    private void saveGuestsToFile() {
+        String fileName = id + "_guests.dat"; // Используем ID премьеры для имени файла
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(id + "_guests.dat"))) {
+            oos.writeObject(guestList);
+            System.out.println("Список гостей для премьеры " + id + " сохранен в файл: " + fileName);
+        } catch (IOException e) {
+            System.out.println("Ошибка при сохранении гостей: " + id + ": " + e.getMessage());
+            logger.warning("Ошибка при сохранении гостей в файл для премьеры " + id + ": " + e.getMessage());
+        }
+    }
+
+    // Метод для очистки списка гостей
+    public void clearGuests() {
+        guestList.clear();
+        System.out.println("Список гостей для премьеры " + movieTitle + " очищен.");
+    }
+
+    // Метод для загрузки гостей из файла
+    public void loadGuestsFromFile() {
+        String fileName = id + "_guests.dat"; // Используем ID премьеры для имени файла
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileName))) {
+            guestList = (List<String>) ois.readObject();
+            System.out.println ("Список гостей для премьеры " + id + " загружен из файла: " + fileName);
+        } catch (IOException | ClassNotFoundException e) {
+            logger.warning("Ошибка при загрузке гостей из файла для премьеры " + id + ": " + e.getMessage());
+            System.out.println("Ошибка при загрузке гостей из файла для премьеры " + id + ": " + e.getMessage());;
         }
     }
 
@@ -237,14 +311,8 @@ public class Premiere {
                 "Место проведения: " + location + "\n" +
                 "Продано билетов: " + ticketSold + "\n" +
                 "Общая прибыль: $" + totalRevenue + "\n" +
-                "Список гостей: " + String.join(", ", guestList) + "\n" +
+                "Список гостей: " + (guestList.isEmpty() ? "Нет гостей" : String.join(", ", guestList)) + "\n" +  // Добавление проверки на пустой список гостей
                 "Отзывы: " + String.join("; ", reviews) + "\n";
         return report; // Возвращаем строку отчета
     }
 }
-
-    /* Эмуляция отправки отчета по электронной почте
-    public void sendReportByEmail() {
-        String report = generateReport();
-        logger.info("Отправка отчета по электронной почте: \n" + report);
-    }*/

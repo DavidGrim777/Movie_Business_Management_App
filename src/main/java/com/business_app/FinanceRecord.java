@@ -1,8 +1,9 @@
 package com.business_app;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 
-public class FinanceRecord {
+public class FinanceRecord implements Serializable {
 
     private String id;
     private FinanceType type; // тип записи доход/расход

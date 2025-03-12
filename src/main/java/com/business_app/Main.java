@@ -26,15 +26,15 @@ public class Main {
             System.out.println("5. Удалить контракт");
             System.out.println("6. Показать список контрактов");
             System.out.println("7. Добавить премьеру");
-            System.out.println("8. Удалить премьеру");
-            System.out.println("9. Показать все премьеры");
-            System.out.println("10. Добавить финансовую запись");
-            System.out.println("11. Удалить финансовую запись");
-            System.out.println("12. Показать финансовый отчет");
-            System.out.println("13. Добавить гостя на премьеру");
-            System.out.println("14. Добавить бюджет для премьеры");
-            System.out.println("15. Продажа билетов");
-            System.out.println("16. Возврат билетов");
+            System.out.println("8. Добавить гостя на премьеру");
+            System.out.println("9. Удалить премьеру");
+            System.out.println("10. Показать все премьеры с гостями");
+            System.out.println("11. Добавить финансовую запись");
+            System.out.println("12. Добавить бюджет для премьеры");
+            System.out.println("13. Удалить финансовую запись");
+            System.out.println("14. Продажа билетов");
+            System.out.println("15. Возврат билетов");
+            System.out.println("16. Показать финансовый отчет");
             System.out.println("17. Добавить отзыв");
             System.out.println("18. Выйти");
 
@@ -81,11 +81,12 @@ public class Main {
                             String premiereTitle = scanner.nextLine();
                             System.out.print("Введите количество билетов: ");
                             int ticketCount = scanner.nextInt();
-                            System.out.print("Введите дату премьеры (dd-MM-yyyy HH:mm:ss z)" +
-                                    "(например: 10-11-2025 14:30:00 +03:00): ");
+                            scanner.nextLine();
+                            System.out.print("Введите дату премьеры (dd.MM.yyyy HH:mm z)" +
+                                    "(например: 10-11-2025 14:30 GMT): ");
                             try {
                                 String dateInput = scanner.nextLine();
-                                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss z");
+                                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm z");
                                 ZonedDateTime premiereDate = ZonedDateTime.parse(dateInput, formatter); // Парсим дату с учётом зоны
                                 System.out.print("Введите место премьеры: ");
                                 String premierePlace = scanner.nextLine();
@@ -220,9 +221,9 @@ public class Main {
                         int ticketCount = scanner.nextInt();
                         scanner.nextLine();  // Очистка буфера после nextInt()
                         try {
-                            System.out.print("Введите дату премьеры (dd-MM-yyyy HH:mm:ss z) (например: 10-11-2025 14:30:00 +03:00): ");
+                            System.out.print("Введите дату премьеры (dd.MM.yyyy HH:mm z) (например: 10.11.2025 14:30 GMT): ");
                             String dateInput = scanner.nextLine();
-                            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss z");
+                            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm z");
                             ZonedDateTime premiereDate = ZonedDateTime.parse(dateInput, formatter); // Парсим дату с учётом зоны
                             System.out.print("Введите место премьеры: ");
                             String premierePlace = scanner.nextLine();
@@ -232,13 +233,31 @@ public class Main {
                         }
                         break;
 
-                    case 8:
+                    case 8: // Добавление гостя на премьеру
+                        System.out.print("Введите ID премьеры для добавления гостя: ");
+                        String premiereIdForGuest = scanner.nextLine();
+                        System.out.print("Введите имя гостя: ");
+                        String guestName = scanner.nextLine();
+                        System.out.print("Введите возраст гостя: ");
+                        int guestAge = scanner.nextInt();
+                        // Находим премьеру по ID
+                        Premiere premiereForGuest = premiereManager.findPremiereById(premiereIdForGuest);
+
+                        if (premiereForGuest != null) {
+                            // Добавляем гостя в найденную премьеру
+                            premiereForGuest.addGuest(guestName, guestAge);
+                        } else {
+                            System.out.println("Премьера с таким ID не найдена.");
+                        }
+                        break;
+
+                    case 9:
                         System.out.print("Введите ID премьеры для удаления: ");
                         String premiereIdToRemove = scanner.nextLine();
                         premiereManager.removePremiereById(premiereIdToRemove);
                         break;
 
-                    case 9:
+                    case 10:
                         Map<String, Premiere> premiereMap = premiereManager.getPremiereMap();
                         if (premiereMap.isEmpty()) {
                             System.out.println("Нет доступных премьер.");
@@ -248,11 +267,22 @@ public class Main {
                                 Premiere premiere = entry.getValue();  // Получаем объект премьеры
                                 System.out.println("ID: " + entry.getKey() + ", Название: " + premiere.getMovieTitle() +
                                         ", Дата: " + premiere.getDate() + ", Место: " + premiere.getLocation());
+                                // Загружаем список гостей из файла для каждой премьеры
+                                premiere.loadGuestsFromFile();
+
+                                // Выводим список гостей
+                                if (!premiere.getGuestList().isEmpty()) {
+                                    System.out.println("Список гостей для премьеры " + premiere.getMovieTitle() + ":");
+                                    premiere.getGuestList().forEach(System.out::println);  // Вывод списка гостей
+                                } else {
+                                    System.out.println("Нет гостей на этой премьере.");
+                                }
+                                System.out.println();
                             }
                         }
                         break;
 
-                    case 10:
+                    case 11:
                         System.out.print("Введите ID записи: ");
                         String recordId = scanner.nextLine().trim();
 
@@ -303,43 +333,7 @@ public class Main {
                         }
                         break;
 
-                    case 11:
-                        System.out.print("Введите ID финансовой записи для удаления: ");
-                        String recordToRemoveId = scanner.nextLine();
-                        try {
-                            financeManager.removeFinanceRecord(recordToRemoveId);
-                            System.out.println("Финансовая запись успешно удалена.");
-                        } catch (IllegalArgumentException exception) {
-                            System.out.println("Ошибка: " + exception.getMessage());
-                        }
-                        break;
-
-                    case 12:
-                        if (financeManager.hasRecords()) {
-                            financeManager.generateFinanceReport(); // Генерация отчета
-                        } else {
-                            System.out.println("Отчет не может быть сгенерирован, так как нет записей для анализа.");
-                        }
-                        break;
-
-                    case 13: // Добавление гостя на премьеру
-                        System.out.print("Введите ID премьеры для добавления гостя: ");
-                        String premiereIdForGuest = scanner.nextLine();
-                        System.out.print("Введите имя гостя: ");
-                        String guestName = scanner.nextLine();
-                        System.out.print("Введите возраст гостя: ");
-                        int guestAge = scanner.nextInt();
-                        // Находим премьеру по ID
-                        Premiere premiereForGuest = premiereManager.findPremiereById(premiereIdForGuest);
-
-                        if (premiereForGuest != null) {
-                            // Добавляем гостя в найденную премьеру
-                            premiereForGuest.addGuest(guestName, guestAge);
-                        } else {
-                            System.out.println("Премьера с таким ID не найдена.");
-                        }
-                        break;
-                    case 14: // Добавление бюджета
+                    case 12: // Добавление бюджета
                         System.out.print("Введите ID премьеры для добавления бюджета: ");
                         String premiereIdForBudget = scanner.nextLine();  // Вводим ID премьеры
                         Premiere premiereToCheck = premiereManager.findPremiereById(premiereIdForBudget);  // Ищем премьеру
@@ -352,6 +346,9 @@ public class Main {
                             if (premiereToCheck.isBudgetAvailable(budgetToAdd)) {  // Используем метод для проверки бюджета
                                 premiereToCheck.addBudget(budgetToAdd);  // Добавляем бюджет
                                 System.out.println("Бюджет для премьеры " + premiereToCheck.getMovieTitle() + ": " + premiereToCheck.getBudget() + " добавлен.");
+
+                                // Экспортируем финансы в CSV после добавления бюджета
+                                financeManager.generateFinanceReport(true);
                             } else {
                                 System.out.println("Ошибка: бюджет для премьеры не может быть отрицательным или нулевым.");
                             }
@@ -359,7 +356,19 @@ public class Main {
                             System.out.println("Премьера с таким ID не найдена.");
                         }
                         break;
-                    case 15: // Продажа билетов на премьеру
+
+                    case 13:
+                        System.out.print("Введите ID финансовой записи для удаления: ");
+                        String recordToRemoveId = scanner.nextLine();
+                        try {
+                            financeManager.removeFinanceRecord(recordToRemoveId);
+                            System.out.println("Финансовая запись успешно удалена.");
+                        } catch (IllegalArgumentException exception) {
+                            System.out.println("Ошибка: " + exception.getMessage());
+                        }
+                        break;
+
+                    case 14: // Продажа билетов на премьеру
                         System.out.print("Введите ID премьеры для продажи билетов: ");
                         String premiereIdForTickets = scanner.nextLine(); // Вводим ID премьеры
                         System.out.print("Введите количество билетов для продажи: ");
@@ -372,6 +381,8 @@ public class Main {
                             // Пробуем продать билеты через метод sellTickets в Premiere
                             if (premiere.sellTickets(ticketsToSell)) {
                                 System.out.println("Билеты успешно проданы.");
+                                // Экспортируем финансы в CSV после продажи билетов
+                                financeManager.generateFinanceReport(false);
                             } else {
                                 System.out.println("Ошибка при продаже билетов. Недостаточно билетов.");
                             }
@@ -379,7 +390,8 @@ public class Main {
                             System.out.println("Премьера с таким ID не найдена.");
                         }
                         break;
-                    case 16: // Возврат билетов
+
+                    case 15: // Возврат билетов
                         System.out.print("Введите ID премьеры для возврата билетов: ");
                         String premiereIdForReturn = scanner.nextLine();
                         System.out.print("Введите количество билетов для возврата: ");
@@ -392,6 +404,8 @@ public class Main {
                             try {
                                 // Возвращаем билеты для найденной премьеры
                                 premiereForReturn.returnTickets(ticketsToReturn, premiereForReturn.getTicketSold(), true);
+                                // Экспортируем финансы в CSV после возврата билетов
+                                financeManager.generateFinanceReport(true);
                             } catch (IllegalArgumentException e) {
                                 // Если возникла ошибка (например, возвращаем больше билетов, чем было продано), выводим сообщение
                                 System.out.println(e.getMessage());
@@ -400,6 +414,16 @@ public class Main {
                             System.out.println("Премьера с таким ID не найдена.");
                         }
                         break;
+
+                    case 16:// Генерация отчета
+                        if (financeManager.hasRecords()) {
+                            financeManager.generateFinanceReport(true);
+                        } else {
+                            System.out.println("Отчет не может быть сгенерирован, так как нет записей для анализа.");
+                        }
+                        break;
+
+
                     case 17: // Добавление отзыва
                         System.out.print("Введите ID фильма для отзыва: ");
                         String premiereIdForReview = scanner.nextLine();
