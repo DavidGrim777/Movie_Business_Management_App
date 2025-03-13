@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+@Slf4j
 public class Main {
     public static void main(String[] args) {
         MovieManager movieManager = new MovieManager();
@@ -377,7 +378,7 @@ public class Main {
                         premiereManager.removePremiereById(premiereIdToRemove);
                         break;
 
-                    case 9:
+                    case 10:
                         Map<String, Premiere> premiereMap = premiereManager.getPremiereMap();
                         if (premiereMap.isEmpty()) {
                             System.out.println("Нет доступных премьер.");
