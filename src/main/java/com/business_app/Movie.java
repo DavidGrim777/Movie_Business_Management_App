@@ -2,6 +2,7 @@ package com.business_app;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,9 +11,9 @@ public class Movie {
 
     private String id;                        // Уникальный идентификатор фильма
     private String title;                     // Название фильма
-    private String genre;                     // Жанр фильма
-    private String startDate;                 // Дата начала показа фильма
-    private String endDate;                   // Дата окончания показа фильма
+    private MovieGenre genre;                 // Жанр фильма
+    private LocalDate startDate;              // Дата начала показа фильма
+    private LocalDate endDate;                // Дата окончания показа фильма
     private MovieStatus status;               // Статус фильма (PLANNED, IN_PROGRESS, COMPLETED)
     private double budget;                    // Бюджет фильма
     private List<String> producer;            // Список продюсеров фильма
@@ -25,7 +26,7 @@ public class Movie {
         this.status = movieStatus;
     }
     // Конструктор, инициализирующий все поля фильма
-    public Movie(String id, String title, String genre, String startDate, String endDate,
+    public Movie(String id, String title, MovieGenre genre, LocalDate startDate, LocalDate endDate,
                  MovieStatus status, double budget, List<String> producer, List<String> actors) {
 
         this.id = id;
@@ -48,15 +49,15 @@ public class Movie {
         return title;
     }
 
-    public String getGenre() {
+    public MovieGenre getGenre() {
         return genre;
     }
 
-    public String getStartDate() {
+    public LocalDate getStartDate() {
         return startDate;
     }
 
-    public String getEndDate() {
+    public LocalDate getEndDate() {
         return endDate;
     }
 
@@ -99,24 +100,24 @@ public class Movie {
         this.title = title;
     }
 
-    public void setGenre(String genre) {
-        if (genre == null || genre.trim().isEmpty()) {
+    public void setGenre(MovieGenre genre) {
+        if (genre == null) {
             System.out.println("Жанр не может быть пустым.");
             return;
         }
         this.genre = genre;
     }
 
-    public void setStartDate(String startDate) {
-        if (startDate == null || startDate.trim().isEmpty()) {
+    public void setStartDate(LocalDate startDate) {
+        if (startDate == null) {
             System.out.println("Дата начала не может быть пустой.");
             log.warn("Дата начала не может быть пустой.");
         }
         this.startDate = startDate;
     }
 
-    public void setEndDate(String endDate) {
-        if (endDate == null || endDate.trim().isEmpty()) {
+    public void setEndDate(LocalDate endDate) {
+        if (endDate == null) {
             System.out.println("Дата окончания не может быть пустой.");
             log.warn("Дата окончания не может быть пустой.");
         }
@@ -229,30 +230,14 @@ public class Movie {
             return;
         }
 
-        // Метод для обновления статуса фильма
-        switch (newStatus) {
-            case PLANNED:
-                System.out.println("Фильм теперь находится в производстве.");
-                break;
-            case IN_PROGRESS:
-                System.out.println("Фильм теперь выпущен.");
-                break;
-            case COMPLETED:
-                System.out.println("Фильм отменён.");
-                break;
-            default:
-                System.out.println("Неизвестный статус.");
-
-        }
-
         if (status == newStatus) {
             System.out.println("Фильм уже имеет статус: " + newStatus);
-            log.info("Фильм уже имеет статус: {}", newStatus);
+            log.info("Фильм уже имеет статус: " + newStatus);
             return;
         }
         this.status = newStatus;
         System.out.println("Статус фильма успешно обновлён на: " + newStatus);
-        log.info("Статус фильма успешно обновлён на: {}", newStatus);
+        log.info("Статус фильма успешно обновлён на: " + newStatus);
     }
 
     // Переопределение метода toString() для вывода информации о фильме
@@ -261,13 +246,8 @@ public class Movie {
         return "Movie{" +
                 "id='" + id + '\'' +
                 ", title='" + title + '\'' +
-                ", genre='" + genre + '\'' +
-                ", startDate='" + startDate + '\'' +
-                ", endDate='" + endDate + '\'' +
+                ", genre=" + genre +
                 ", status=" + status +
-                ", budget=" + budget +
-                ", producer=" + producer +
-                ", actors=" + actors +
                 '}';
     }
 }
