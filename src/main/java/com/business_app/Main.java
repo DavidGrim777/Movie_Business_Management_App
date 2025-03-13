@@ -1,10 +1,13 @@
 package com.business_app;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.InputMismatchException;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -44,173 +47,290 @@ public class Main {
                 choice = scanner.nextInt();
                 scanner.nextLine();
             } catch (InputMismatchException exception) {
-                System.out.println("Ошибка: Введите корректное число.");
+                log.error("Ошибка: Введите корректное число.");
                 scanner.nextLine();
                 continue;
             }
 
-            try {
-                switch (choice) {
-                    case 1:
+            switch (choice) {
+                case 1:
+                    String movieId;
+                    do {
                         System.out.print("Введите ID фильма: ");
-                        String movieId = scanner.nextLine();
+                        movieId = scanner.nextLine().trim();
+                        if (movieId.isEmpty()) {
+                            System.out.println("Ошибка: ID фильма не может быть пустым.");
+                        }
+                    } while (movieId.isEmpty());
+
+                    String title;
+                    do {
                         System.out.print("Введите название фильма: ");
-                        String title = scanner.nextLine();
-                        MovieStatus status = null;
-                        while (status == null) {
-                            System.out.print("Введите статус фильма (PLANNED, IN_PROGRESS, COMPLETED): ");
-                            String statusInput = scanner.nextLine().trim().toUpperCase();
-                            try {
-                                status = MovieStatus.valueOf(statusInput);
-                            } catch (IllegalArgumentException exception) {
-                                System.out.println("Ошибка: Некорректный статус фильма. Попробуйте снова.");
-                            }
+                        title = scanner.nextLine().trim();
+                        if (title.isEmpty()) {
+                            System.out.println("Ошибка: Название фильма не может быть пустым.");
                         }
+                    } while (title.isEmpty());
 
-                        Movie movie = new Movie(movieId, title, status);
-                        movieManager.addMovie(movie);
-                        System.out.println("Фильм добавлен: " + title);
+                    MovieStatus status = null;
+                    while (status == null) {
+                        System.out.print("Введите статус фильма (PLANNED, IN_PROGRESS, COMPLETED): ");
+                        String statusInput = scanner.nextLine().trim().toUpperCase();
+                        try {
+                            status = MovieStatus.valueOf(statusInput);
+                        } catch (IllegalArgumentException exception) {
+                            log.error("Ошибка: Некорректный статус фильма. Попробуйте снова.");
+                        }
+                    }
+                    MovieGenre genre = null;
+                    while (genre == null) {
+                        System.out.print("Введите жанр фильма (ACTION, DRAMA, COMEDY, HORROR, FANTASY, THRILLER, ROMANCE, " +
+                                "DOCUMENTARY, ANIMATION, ADVENTURE, CRIME, MYSTERY, FAMILY, WAR, MUSICAL): ");
+                        String genreInput = scanner.nextLine().trim().toUpperCase();
+                        try {
+                            genre = MovieGenre.valueOf(genreInput);
+                        } catch (IllegalArgumentException exception) {
+                            log.error("Ошибка: введён некорректный жанр.");
+                        }
+                    }
 
-                        System.out.print("Хотите добавить премьеру для этого фильма? (да/нет): ");
-                        String premiereResponse = scanner.nextLine().trim().toLowerCase();
+                    Movie movie = new Movie(movieId, title, status);
+                    movieManager.addMovie(movie);
+                    System.out.println("Фильм добавлен: " + title + " genre: " + genre);
 
-                        if (premiereResponse.equals("да")) {
-                            System.out.print("Введите ID премьеры: ");
-                            String premiereId = scanner.nextLine();
-                            System.out.print("Введите название фильма для премьеры: ");
-                            String premiereTitle = scanner.nextLine();
+                    String movieData = movieId + ", " + title + ", " + status + ", " + genre;
+                    movieManager.saveMovies(movieData);
+
+                    System.out.print("Хотите добавить премьеру для этого фильма? (да/нет): ");
+                    String premiereResponse = scanner.nextLine().trim().toLowerCase();
+                    if (premiereResponse.equals("да")) {
+                        System.out.print("Введите ID премьеры: ");
+                        String premiereId = scanner.nextLine().trim();
+                        System.out.print("Введите название фильма для премьеры: ");
+                        String premiereTitle = scanner.nextLine().trim();
+
+                        int ticketCount = 0;
+                        while (ticketCount <= 0) {
                             System.out.print("Введите количество билетов: ");
-                            int ticketCount = scanner.nextInt();
-                            scanner.nextLine();
-                            System.out.print("Введите дату премьеры (dd.MM.yyyy HH:mm z)" +
-                                    "(например: 10-11-2025 14:30 GMT): ");
                             try {
-                                String dateInput = scanner.nextLine();
-                                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm z");
-                                ZonedDateTime premiereDate = ZonedDateTime.parse(dateInput, formatter); // Парсим дату с учётом зоны
-                                System.out.print("Введите место премьеры: ");
-                                String premierePlace = scanner.nextLine();
-                                premiereManager.addPremiere(new Premiere(premiereId, premiereTitle, premiereDate, premierePlace, ticketCount));
-                            } catch (DateTimeParseException exception) {
-                                System.out.println("Ошибка: Неверный формат даты.");
+                                ticketCount = Integer.parseInt(scanner.nextLine().trim());
+                                if (ticketCount <= 0) {
+                                    System.out.println("Ошибка: Количество билетов должно быть положительным числом.");
+                                }
+                            } catch (NumberFormatException exception) {
+                                System.out.println("Ошибка: Введите корректное число.");
                             }
-                        } else if (!premiereResponse.equals("нет")) {
-                            System.out.println("Ошибка: Введите 'да' или 'нет'.");
                         }
 
-                        System.out.print("Хотите добавить контракт для этого фильма? (да/нет): ");
-                        String contractResponse = scanner.nextLine().trim().toLowerCase();
+                        System.out.print("Введите дату премьеры (dd-MM-yyyy HH:mm:ss z) (например: 10-11-2025 14:30:00 +03:00): ");
+                        ZonedDateTime premiereDate = null;
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss z");
 
-                        if (contractResponse.equals("да")) {
+                        while (premiereDate == null) {
+                            try {
+                                String dateInput = scanner.nextLine().trim();
+                                premiereDate = ZonedDateTime.parse(dateInput, formatter);
+                            } catch (DateTimeParseException exception) {
+                                System.out.println("Ошибка: Неверный формат даты. Введите заново: ");
+                            }
+                        }
+
+                        System.out.print("Введите место премьеры: ");
+                        String premierePlace = scanner.nextLine().trim();
+                        premiereManager.addPremiere(new Premiere(premiereId, premiereTitle, premiereDate, premierePlace, ticketCount));
+                    }
+
+                    System.out.print("Хотите добавить контракт для этого фильма? (да/нет): ");
+                    String contractResponse = scanner.nextLine().trim().toLowerCase();
+
+                    if (contractResponse.equals("да")) {
+                        String contractId, personName, role;
+                        LocalDate startDate = null, endDate = null;
+                        double salary = 0;
+                        do {
                             System.out.print("Введите ID контракта: ");
-                            String contractId = scanner.nextLine();
+                            contractId = scanner.nextLine().trim();
+                            if (contractId.isEmpty()) {
+                                System.out.println("Ошибка: ID контракта не может быть пустым. Попробуйте снова.");
+                            }
+                        } while (contractId.isEmpty());
+                        do {
                             System.out.print("Введите имя: ");
-                            String personName = scanner.nextLine();
+                            personName = scanner.nextLine().trim();
+                            if (personName.isEmpty()) {
+                                System.out.println("Ошибка: Имя не может быть пустым. Попробуйте снова.");
+                            }
+                        } while (personName.isEmpty());
+                        do {
                             System.out.print("Введите роль: ");
-                            String role = scanner.nextLine();
+                            role = scanner.nextLine().trim();
+                            if (role.isEmpty()) {
+                                System.out.println("Ошибка: Роль не может быть пустой. Попробуйте снова.");
+                            }
+                        } while (role.isEmpty());
+                        while (startDate == null) {
                             System.out.print("Введите дату начала (yyyy-MM-dd): ");
                             try {
-                                LocalDate startDate = LocalDate.parse(scanner.nextLine());
-                                System.out.print("Введите дату окончания (yyyy-MM-dd): ");
-                                LocalDate endDate = LocalDate.parse(scanner.nextLine());
-                                System.out.print("Введите гонорар: ");
-                                double salary = Double.parseDouble(scanner.nextLine());
-                                contractManager.addContract(new Contract(contractId, personName, role, startDate, endDate, salary));
+                                startDate = LocalDate.parse(scanner.nextLine().trim());
                             } catch (DateTimeParseException exception) {
-                                System.out.println("Ошибка: Неверный формат даты.");
-                            } catch (NumberFormatException exception) {
-                                System.out.println("Ошибка: Гонорар должен быть числом.");
+                                System.out.println("Ошибка: Неверный формат даты. Попробуйте снова.");
+                                log.error("Ошибка: Неверный формат даты.");
                             }
-                        } else if (!contractResponse.equals("нет")) {
-                            System.out.println("Ошибка: Введите 'да' или 'нет'.");
                         }
-
-                        System.out.print("Хотите добавить финансовую запись для этого фильма? (да/нет): ");
-                        String financeResponse = scanner.nextLine().trim().toLowerCase();
-
-                        if (financeResponse.equals("да")) {
-                            System.out.print("Введите ID записи: ");
-                            String recordId = scanner.nextLine();
-
-                            System.out.print("Введите тип записи (INCOME, EXPENSE): ");
-                            String typeInput = scanner.nextLine().trim().toUpperCase();
-
+                        while (endDate == null || endDate.isBefore((startDate))) {
+                            System.out.print("Введите дату окончания (yyyy-MM-dd): ");
                             try {
-                                FinanceType type = FinanceType.valueOf(typeInput);
-                                System.out.print("Введите сумму: ");
-                                double amount = Double.parseDouble(scanner.nextLine().trim());
-
-                                if (amount < 0) {
-                                    System.out.println("Ошибка: Сумма не может быть отрицательной.");
-                                    break;
+                                endDate = LocalDate.parse(scanner.nextLine().trim());
+                                if (endDate.isBefore(startDate)) {
+                                    System.out.println("Ошибка: Дата окончания не может быть раньше даты начала. Попробуйте снова.");
+                                    endDate = null;
                                 }
-
-                                System.out.print("Введите описание: ");
-                                String description = scanner.nextLine().trim();
-                                if (description.isEmpty()) {
-                                    description = "Без описания";
-                                }
-
-                                System.out.print("Введите дату (в формате YYYY-MM-DD): ");
-                                String dateInput = scanner.nextLine().trim();
-                                LocalDate date = null;
-                                if (!dateInput.isEmpty()) {
-                                    try {
-                                        date = LocalDate.parse(dateInput);
-                                    } catch (DateTimeParseException e) {
-                                        System.out.println("Ошибка: Неверный формат даты.");
-                                    }
-                                }
-                                financeManager.addFinanceRecord(new FinanceRecord(recordId, type, amount, description, date));
-                                System.out.println("Финансовая запись успешно добавлена.");
-
-                            } catch (IllegalArgumentException exception) {
-                                System.out.println("Ошибка: Неверный тип записи. Используйте INCOME или EXPENSE.");
-
-                            } catch (DateTimeParseException e) {
-                                System.out.println("Ошибка: Неверный формат даты.");
+                            } catch (DateTimeParseException exception) {
+                                System.out.println("Ошибка: Неверный формат даты. Попробуйте снова.");
+                                endDate = null;
                             }
-                        } else if (!financeResponse.equals("нет")) {
-                            System.out.println("Ошибка: Введите 'да' или 'нет'.");
                         }
-                        break;
+                        while (true) {
+                            System.out.print("Введите гонорар: ");
+                            try {
+                                salary = Double.parseDouble(scanner.nextLine().trim());
+                                if (salary < 0) {
+                                    System.out.println("Ошибка: Гонорар не может быть отрицательным. Попробуйте снова.");
+                                    continue;
+                                }
+                                break;
+                            } catch (NumberFormatException exception) {
+                                System.out.println("Ошибка: Гонорар должен быть числом. Попробуйте снова.");
+                                log.error("Ошибка: Гонорар должен быть числом.");
+                            }
+                        }
+                        while (!contractResponse.equals("да") && !contractResponse.equals("нет")) {
+                            System.out.println("Ошибка: Введите 'да' или 'нет'.");
+                            contractResponse = scanner.nextLine().trim().toLowerCase();
+                        }
+                        while (true) {
+                            System.out.print("Хотите добавить финансовую запись для этого фильма? (да/нет): ");
+                            String financeResponse = scanner.nextLine().trim().toLowerCase();
 
-                    case 2:
-                        System.out.print("Введите ID фильма для удаления: ");
-                        String movieToRemoveId = scanner.nextLine();
-                        movieManager.removeMovie(movieToRemoveId);
-                        break;
+                            if (financeResponse.equals("нет")) {
+                                break;
+                            } else if (!financeResponse.equals("да")) {
+                                try {
 
-                    case 3:
-                        movieManager.printAllMovies();
-                        break;
+                                    String recordId;
+                                    do {
+                                        System.out.print("Введите ID записи: ");
+                                        recordId = scanner.nextLine().trim();
+                                        if (recordId.isEmpty()) {
+                                            System.out.println("Ошибка: ID записи не может быть пустым.");
+                                        }
+                                    } while (recordId.isEmpty());
 
-                    case 4:
-                        System.out.print("Введите ID контракта: ");
-                        String contractId = scanner.nextLine();
-                        System.out.print("Введите имя: ");
-                        String personName = scanner.nextLine();
-                        System.out.print("Введите роль: ");
-                        String role = scanner.nextLine();
-                        System.out.print("Введите дату начала (yyyy-MM-dd): ");
-                        LocalDate startDate = LocalDate.parse(scanner.nextLine());
-                        System.out.print("Введите дату окончания (yyyy-MM-dd): ");
-                        LocalDate endDate = LocalDate.parse(scanner.nextLine());
-                        System.out.print("Введите гонорар: ");
-                        double salary = scanner.nextDouble();
-                        scanner.nextLine();
-                        contractManager.addContract(new Contract(contractId, personName, role, startDate, endDate, salary));
-                        break;
+                                    String typeInput;
+                                    FinanceType type;
+                                    do {
+                                        System.out.print("Введите тип записи (INCOME, EXPENSE): ");
+                                        typeInput = scanner.nextLine().trim().toUpperCase();
+                                        if (typeInput.isEmpty()) {
+                                            System.out.println("Ошибка: Тип записи не может быть пустым.");
+                                        } else {
+                                            try {
+                                                type = FinanceType.valueOf(typeInput);
+                                                break;
+                                            } catch (IllegalArgumentException exception) {
+                                                System.out.println("Ошибка: Неверный тип записи. Используйте INCOME или EXPENSE.");
+                                            }
+                                        }
+                                    } while (true);
 
-                    case 5:
-                        System.out.print("Введите ID контракта для удаления: ");
-                        String contractIdToRemove = scanner.nextLine();
-                        contractManager.removeContract(contractIdToRemove);
-                        break;
+                                    System.out.print("Введите сумму: ");
+                                    double amount = Double.parseDouble(scanner.nextLine().trim());
 
-                    case 6:
-                        contractManager.printAllContracts();
-                        break;
+                                    if (amount < 0) {
+                                        System.out.println("Ошибка: Сумма не может быть отрицательной.");
+                                        continue;
+                                    }
+
+                                    System.out.print("Введите описание: ");
+                                    String description = scanner.nextLine().trim();
+                                    if (description.isEmpty()) {
+                                        description = "Без описания";
+                                    }
+
+                                    System.out.print("Введите дату (в формате YYYY-MM-DD): ");
+                                    String dateInput = scanner.nextLine().trim();
+                                    LocalDate date = null;
+                                    if (!dateInput.isEmpty()) {
+                                        try {
+                                            date = LocalDate.parse(dateInput);
+                                        } catch (DateTimeParseException exception) {
+                                            System.out.println("Ошибка: Неверный формат даты.");
+                                            log.error("Ошибка: Неверный формат даты.");
+                                            continue;
+                                        }
+                                    }
+                                    financeManager.addFinanceRecord(new FinanceRecord(recordId, type, amount, description, date));
+                                    System.out.println("Финансовая запись успешно добавлена.");
+
+                                } catch (IllegalArgumentException exception) {
+                                    System.out.println("Ошибка: Неверный тип записи. Используйте INCOME или EXPENSE.");
+
+                                } catch (DateTimeParseException e) {
+                                    System.out.println("Ошибка: Неверный формат даты.");
+                                }
+                            } else {
+                                System.out.println("Ошибка: Введите 'да' или 'нет'.");
+                            }
+                        }
+                    }
+                    break;
+
+
+                case 2:
+                    System.out.print("Введите ID фильма для удаления: ");
+                    String movieToRemoveId = scanner.nextLine().trim();
+                    movieManager.removeMovie(movieToRemoveId);
+                    break;
+
+                case 3:
+                    List<Movie> movies = movieManager.loadMovie();
+                    if (movies == null || movies.isEmpty()) {
+                        System.out.println("Фильмов пока нет.");
+                        log.error("Фильмов пока нет.");
+                    } else {
+                        System.out.println("Список фильмов: ");
+                        for (Movie movieTitle : movies) {
+                            System.out.println(movieTitle.getTitle());
+                        }
+                    }
+                    break;
+
+                case 4:
+                    System.out.print("Введите ID контракта: ");
+                    String contractId = scanner.nextLine().trim();
+                    System.out.print("Введите имя: ");
+                    String personName = scanner.nextLine().trim();
+                    System.out.print("Введите роль: ");
+                    String role = scanner.nextLine().trim();
+                    System.out.print("Введите дату начала (yyyy-MM-dd): ");
+                    LocalDate startDate = LocalDate.parse(scanner.nextLine().trim());
+                    System.out.print("Введите дату окончания (yyyy-MM-dd): ");
+                    LocalDate endDate = LocalDate.parse(scanner.nextLine().trim());
+                    System.out.print("Введите гонорар: ");
+                    double salary = scanner.nextDouble();
+                    scanner.nextLine();
+                    contractManager.addContract(new Contract(contractId, personName, role, startDate, endDate, salary));
+                    break;
+
+                case 5:
+                    System.out.print("Введите ID контракта для удаления: ");
+                    String contractIdToRemove = scanner.nextLine().trim();
+                    contractManager.removeContract(contractIdToRemove);
+                    break;
+
+                case 6:
+                    contractManager.printAllContracts();
+                    break;
 
                     case 7:
                         System.out.print("Введите ID премьеры: ");
@@ -257,7 +377,7 @@ public class Main {
                         premiereManager.removePremiereById(premiereIdToRemove);
                         break;
 
-                    case 10:
+                    case 9:
                         Map<String, Premiere> premiereMap = premiereManager.getPremiereMap();
                         if (premiereMap.isEmpty()) {
                             System.out.println("Нет доступных премьер.");
@@ -267,17 +387,6 @@ public class Main {
                                 Premiere premiere = entry.getValue();  // Получаем объект премьеры
                                 System.out.println("ID: " + entry.getKey() + ", Название: " + premiere.getMovieTitle() +
                                         ", Дата: " + premiere.getDate() + ", Место: " + premiere.getLocation());
-                                // Загружаем список гостей из файла для каждой премьеры
-                                premiere.loadGuestsFromFile();
-
-                                // Выводим список гостей
-                                if (!premiere.getGuestList().isEmpty()) {
-                                    System.out.println("Список гостей для премьеры " + premiere.getMovieTitle() + ":");
-                                    premiere.getGuestList().forEach(System.out::println);  // Вывод списка гостей
-                                } else {
-                                    System.out.println("Нет гостей на этой премьере.");
-                                }
-                                System.out.println();
                             }
                         }
                         break;
@@ -432,25 +541,24 @@ public class Main {
                         // Ищем премьеру для отзыва
                         Premiere premiereForReview = premiereManager.findPremiereById(premiereIdForReview);
 
-                        if (premiereForReview != null) {
-                            // Добавляем отзыв для найденной премьеры
-                            premiereForReview.addReview(reviewText);
-                            System.out.println("Отзыв добавлен для премьеры " + premiereForReview.getMovieTitle());
-                        } else {
-                            System.out.println("Премьера с таким ID не найдена.");
-                        }
-                        break;
-                    case 18:
-                        System.out.println("Выход из приложения...");
-                        scanner.close();
-                        return;
+                    if (premiereForReview != null) {
+                        // Добавляем отзыв для найденной премьеры
+                        premiereForReview.addReview(reviewText);
+                        System.out.println("Отзыв добавлен для премьеры " + premiereForReview.getMovieTitle());
+                    } else {
+                        System.out.println("Премьера с таким ID не найдена.");
+                    }
+                    break;
 
-                    default:
-                        System.out.println("Ошибка: Выберите корректный пункт меню.");
-                }
-            } catch (Exception exception) {
-                System.out.println("Ошибка: " + exception.getMessage());
+                case 18:
+                    System.out.println("Выход из приложения...");
+                    scanner.close();
+                    return;
+
+                default:
+                    System.out.println("Ошибка: Выберите корректный пункт меню.");
             }
         }
     }
 }
+
