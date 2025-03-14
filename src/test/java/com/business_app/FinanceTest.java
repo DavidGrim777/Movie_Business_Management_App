@@ -250,7 +250,7 @@ public class FinanceTest {
         financeManager.addFinanceRecord(income);
 
         // Act: генерация отчета
-        financeManager.generateFinanceReport();  // просто проверяем, что метод не вызывает ошибок
+        financeManager.generateFinanceReport(true);  // просто проверяем, что метод не вызывает ошибок
     }
 
     // Тестируем экспорт в CSV
