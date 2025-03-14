@@ -52,8 +52,7 @@ public class Contract {
     // Сеттеры (методы для изменения значений полей с проверкой)
     public void setId(String id) {
         if (id == null || id.trim().isEmpty()) {
-            System.out.println("ID не может быть пустым.");
-            log.warn("ID не может быть пустым.");
+            log.error("ID не может быть пустым.");
             return;
         }
         this.id = id;
@@ -61,47 +60,45 @@ public class Contract {
 
     public void setPersonName(String personName) {
         if (personName == null || personName.trim().isEmpty()) {
-            System.out.println("Имя не может быть пустым.");
-            log.warn("Имя не может быть пустым.");
+            log.error("Имя не может быть пустым.");
         }
         this.personName = personName;
     }
 
     public void setRole(String role) {
         if (role == null || role.trim().isEmpty()) {
-            System.out.println("Роль не может быть пустой.");
-            log.warn("Роль не может быть пустой.");
+            log.error("Роль не может быть пустой.");
         }
         this.role = role;
     }
 
-    public void setStartDate(String startDate) {
-        if (startDate == null || startDate.trim().isEmpty()) {
-            System.out.println("Дата начала не может быть пустой.");
-            log.warn("Дата начала не может быть пустой.");
+    public void setStartDate(LocalDate startDate) {
+        if (startDate == null) {
+            log.error("Дата начала не может быть пустой.");
+            throw new IllegalArgumentException("Дата начала не может быть пустой.");
         }
-        this.startDate = LocalDate.parse(startDate);
+        this.startDate = startDate;
     }
 
-    public void setEndDate(String endDate) {
-        if (endDate == null || endDate.trim().isEmpty()) {
-            System.out.println("Дата окончания не может быть пустой.");
-            log.warn("Дата окончания не может быть пустой.");
+    public void setEndDate(LocalDate endDate) {
+        if (endDate == null) {
+            log.error("Дата окончания не может быть пустой.");
+            throw new IllegalArgumentException("Дата окончания не может быть пустой.");
         }
-        this.endDate = LocalDate.parse(endDate);
+        this.endDate = endDate;
     }
 
     public void setSalary(double salary) {
         if (salary < 0) {
-            System.out.println("Гонорар не может быть отрицательным.");
-            log.warn("Гонорар не может быть отрицательным.");
+            log.error("Гонорар не может быть отрицательным.");
+            throw new IllegalArgumentException("Гонорар не может быть отрицательным.");
         }
         this.salary = salary;
     }
 
     // Метод проверки, активен ли контракт (если дата окончания ещё не наступила)
     public boolean isActive() {
-        return endDate != null && !endDate.isAfter(LocalDate.now());
+        return endDate == null && !endDate.isAfter(LocalDate.now());
     }
 
     // Переопределение метода toString() для вывода информации о контракте
