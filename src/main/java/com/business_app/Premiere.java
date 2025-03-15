@@ -1,21 +1,25 @@
 package com.business_app;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-
+@Getter
+@Setter
+@ToString
 public class Premiere implements Serializable {
 
     private static final Logger logger = Logger.getLogger(Premiere.class.getName());
@@ -78,10 +82,6 @@ public class Premiere implements Serializable {
 
     }
 
-    public String getId() {
-        return id;
-    }
-
     public void setId(String id) {
         if (id == null || id.trim().isEmpty()) {
             throw new IllegalArgumentException("ID не может быть пустым или null.");
@@ -92,55 +92,12 @@ public class Premiere implements Serializable {
         this.id = id;
     }
 
-    public String getMovieTitle() {
-        return movieTitle;
-    }
-
-    public ZonedDateTime getDate() {
-        return date;
-    }
-
     public String getLocation() {
         if (location == null || location.isEmpty()) {
             return "Местоположение не указано";
         }
         return location;
     }
-
-
-    public int getTicketCount() {
-        return ticketCount;
-    }
-
-
-    public int getTicketSold() {
-        return ticketSold;
-    }
-
-    public void setTicketSold(int ticketSold) {
-        this.ticketSold = ticketSold;
-    }
-
-    public double getBudget() {
-        return budget;
-    }
-
-    public void setBudget(double budget) {
-        this.budget = budget;
-    }
-
-    public List<String> getGuestList() {
-        return guestList;
-    }
-
-    public List<String> getReviews() {
-        return reviews;
-    }
-
-    public void setReviews(List<String> reviews) {
-        this.reviews = reviews;
-    }
-
 
     // Метод для добавления гостей с проверкой возраста и минимального возраста премьеры
     public void addGuest(String guestName, int guestAge) {
@@ -241,14 +198,14 @@ public class Premiere implements Serializable {
             saveReviewsToFile(); // Сохраняем отзывы в текстовый файл
         }
     }
+
     // Метод для сохранения отзывов в текстовый файл
-    private void saveReviewsToFile() {
+    public void saveReviewsToFile() {
         String fileName = id + "_reviews.txt"; // Используем ID премьеры для имени файла
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, true))) { // Открываем файл в режиме добавления
-            for (String review : reviews) {
-                writer.write(review);  // Записываем отзыв в файл
-                writer.newLine();  // Переходим на новую строку после каждого отзыва
-            }
+        Path filePath = Paths.get(fileName);
+        try {
+            // Записываем все отзывы в файл (добавление строк)
+            Files.write(filePath, reviews, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
             System.out.println("Отзывы для премьеры " + id + " сохранены в файл: " + fileName);
         } catch (IOException e) {
             System.out.println("Ошибка при сохранении отзывов для премьеры " + id + ": " + e.getMessage());
@@ -257,29 +214,20 @@ public class Premiere implements Serializable {
     }
 
     // Метод для загрузки отзывов из текстового файла
-    private void loadReviewsFromFile() {
+    public void loadReviewsFromFile() {
         String fileName = id + "_reviews.txt"; // Используем ID премьеры для имени файла
-        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                reviews.add(line); // Добавляем каждый отзыв в список
-            }
+        Path filePath = Paths.get(fileName);
+        if (!Files.exists(filePath)) {
+            System.out.println("Файл с отзывами не найден для премьеры " + id);
+            return;
+        }
+
+        try {
+            reviews = Files.readAllLines(filePath); // Читаем все строки в список
             System.out.println("Отзывы для премьеры " + id + " загружены из файла: " + fileName);
         } catch (IOException e) {
             System.out.println("Ошибка при загрузке отзывов для премьеры " + id + ": " + e.getMessage());
             logger.warning("Ошибка при загрузке отзывов из файла для премьеры " + id + ": " + e.getMessage());
-        }
-    }
-
-    // Метод для сохранения гостей в файл
-    private void saveGuestsToFile() {
-        String fileName = id + "_guests.dat"; // Используем ID премьеры для имени файла
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(id + "_guests.dat"))) {
-            oos.writeObject(guestList);
-            System.out.println("Список гостей для премьеры " + id + " сохранен в файл: " + fileName);
-        } catch (IOException e) {
-            System.out.println("Ошибка при сохранении гостей: " + id + ": " + e.getMessage());
-            logger.warning("Ошибка при сохранении гостей в файл для премьеры " + id + ": " + e.getMessage());
         }
     }
 
@@ -289,10 +237,28 @@ public class Premiere implements Serializable {
         System.out.println("Список гостей для премьеры " + movieTitle + " очищен.");
     }
 
+    // Метод для сохранения гостей в файл
+    private void saveGuestsToFile() {
+        String fileName = id + "_guests.dat"; // Используем ID премьеры для имени файла
+        try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(Paths.get(fileName)))) {
+            oos.writeObject(guestList);
+            System.out.println("Список гостей для премьеры " + id + " сохранен в файл: " + fileName);
+        } catch (IOException e) {
+            System.out.println("Ошибка при сохранении гостей: " + id + ": " + e.getMessage());
+            logger.warning("Ошибка при сохранении гостей в файл для премьеры " + id + ": " + e.getMessage());
+        }
+    }
+
     // Метод для загрузки гостей из файла
     public void loadGuestsFromFile() {
         String fileName = id + "_guests.dat"; // Используем ID премьеры для имени файла
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileName))) {
+        Path path = Paths.get(fileName);
+        System.out.println("Месторасположение файла: " + path.toAbsolutePath());
+        if (!Files.exists(path)) {
+            logger.warning("Файл не найден: " + fileName);
+            return; // Прерываем выполнение метода, если файла нет
+        }
+        try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(path))) {
             guestList = (List<String>) ois.readObject();
             System.out.println ("Список гостей для премьеры " + id + " загружен из файла: " + fileName);
         } catch (IOException | ClassNotFoundException e) {
@@ -311,7 +277,7 @@ public class Premiere implements Serializable {
                 "Место проведения: " + location + "\n" +
                 "Продано билетов: " + ticketSold + "\n" +
                 "Общая прибыль: $" + totalRevenue + "\n" +
-                "Список гостей: " + (guestList.isEmpty() ? "Нет гостей" : String.join(", ", guestList)) + "\n" +  // Добавление проверки на пустой список гостей
+                "Список гостей: " + (guestList.isEmpty() ? "Нет гостей" : String.join(", ", guestList)) + "\n" +
                 "Отзывы: " + String.join("; ", reviews) + "\n";
         return report; // Возвращаем строку отчета
     }
