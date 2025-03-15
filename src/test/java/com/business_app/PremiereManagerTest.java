@@ -1,4 +1,4 @@
-package business.app;
+package com.business_app;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

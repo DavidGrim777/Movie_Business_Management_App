@@ -1,4 +1,4 @@
-package business.app;
+package com.business_app;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;

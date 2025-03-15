@@ -1,4 +1,4 @@
-package business.app;
+package com.business_app;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -6,7 +6,11 @@ import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.*;
+import java.util.InputMismatchException;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.UUID;
 
 @Slf4j
 public class Main {
@@ -98,35 +102,15 @@ public class Main {
                     System.out.println("Фильм добавлен: " + title + " genre: " + genre);
 
                     String movieData = movieId + ", " + title + ", " + status + ", " + genre;
-                    movieManager.saveMovies();
+                    movieManager.saveMovies(movieData);
 
-                    String premiereResponse;
-                    do {
-                        System.out.print("Хотите добавить премьеру для этого фильма? (да/нет): ");
-                        premiereResponse = scanner.nextLine().trim().toLowerCase();
-                        if (!premiereResponse.equals("да") && !premiereResponse.equals("нет")){
-                            System.out.println("Ошибка: Введите 'да' или 'нет'.");
-                        }
-                    }while (!premiereResponse.equals("да") && !premiereResponse.equals("нет"));
-
+                    System.out.print("Хотите добавить премьеру для этого фильма? (да/нет): ");
+                    String premiereResponse = scanner.nextLine().trim().toLowerCase();
                     if (premiereResponse.equals("да")) {
-                        String premiereId;
-                        do {
-                            System.out.print("Введите ID премьеры: ");
-                            premiereId = scanner.nextLine().trim();
-                            if (premiereId.isEmpty()){
-                                System.out.println("Ошибка: ID премьеры не может быть пустым.");
-                            }
-                        }while (premiereId.isEmpty());
-
-                        String premiereTitle;
-                        do {
-                            System.out.print("Введите название фильма для премьеры: ");
-                            premiereTitle = scanner.nextLine().trim();
-                            if (premiereTitle.isEmpty()){
-                                System.out.println("Ошибка: Название фильма для премьеры не может быть пустым.");
-                            }
-                        }while (premiereTitle.isEmpty());
+                        System.out.print("Введите ID премьеры: ");
+                        String premiereId = scanner.nextLine().trim();
+                        System.out.print("Введите название фильма для премьеры: ");
+                        String premiereTitle = scanner.nextLine().trim();
 
                         int ticketCount = 0;
                         while (ticketCount <= 0) {
@@ -154,26 +138,13 @@ public class Main {
                             }
                         }
 
-                        String premierePlace;
-                        do {
-                            System.out.print("Введите место премьеры: ");
-                            premierePlace = scanner.nextLine().trim();
-                            if (premierePlace.isEmpty()){
-                                System.out.println("Ошибка: Место премьеры не может быть пустым.");
-                            }
-                        }while (premierePlace.isEmpty());
-
+                        System.out.print("Введите место премьеры: ");
+                        String premierePlace = scanner.nextLine().trim();
                         premiereManager.addPremiere(new Premiere(premiereId, premiereTitle, premiereDate, premierePlace, ticketCount));
                     }
 
-                    String contractResponse;
-                    do {
-                        System.out.print("Хотите добавить контракт для этого фильма? (да/нет): ");
-                        contractResponse = scanner.nextLine().trim().toLowerCase();
-                        if (!contractResponse.equals("да") && !contractResponse.equals("нет")){
-                            System.out.println("Ошибка: Введите 'да' или 'нет'.");
-                        }
-                    }while (!contractResponse.equals("да") && !contractResponse.equals("нет"));
+                    System.out.print("Хотите добавить контракт для этого фильма? (да/нет): ");
+                    String contractResponse = scanner.nextLine().trim().toLowerCase();
 
                     if (contractResponse.equals("да")) {
                         String contractId, personName, role;
@@ -234,6 +205,10 @@ public class Main {
                                 System.out.println("Ошибка: Гонорар должен быть числом. Попробуйте снова.");
                                 log.error("Ошибка: Гонорар должен быть числом.");
                             }
+                        }
+                        while (!contractResponse.equals("да") && !contractResponse.equals("нет")) {
+                            System.out.println("Ошибка: Введите 'да' или 'нет'.");
+                            contractResponse = scanner.nextLine().trim().toLowerCase();
                         }
                         while (true) {
                             System.out.print("Хотите добавить финансовую запись для этого фильма? (да/нет): ");
@@ -320,9 +295,16 @@ public class Main {
                     break;
 
                 case 3:
+                    List<Movie> movies = movieManager.loadMovie();
+                    if (movies == null || movies.isEmpty()) {
+                        System.out.println("Фильмов пока нет.");
+                        log.error("Фильмов пока нет.");
+                    } else {
                         System.out.println("Список фильмов: ");
-                        movieManager.printAllMovies();
-                        movieManager.loadMovie();
+                        for (Movie movieTitle : movies) {
+                            System.out.println(movieTitle.getTitle());
+                        }
+                    }
                     break;
 
                 case 4:

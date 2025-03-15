@@ -1,4 +1,4 @@
-package business.app;
+package com.business_app;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,7 +24,6 @@ class MovieManager {
             return;
         }
         movies.add(movie);
-        saveMovies();
     }
 
     // Метод для удаления фильма по ID
@@ -64,7 +63,6 @@ class MovieManager {
                 movies.set(i, updatedMovie);
                 System.out.println("Фильм обновлён: " + updatedMovie.getTitle());
                 log.info("Фильм обновлён: {}", updatedMovie.getTitle());
-                saveMovies();
                 return;
             }
         }
@@ -74,7 +72,6 @@ class MovieManager {
 
     // Метод выводит в консоль все фильмы из списка
     public void printAllMovies() {
-        loadMovie();
         if (movies.isEmpty()) {
             System.out.println("Список фильмов пуст.");
         } else {
@@ -84,12 +81,10 @@ class MovieManager {
         }
     }
 
-    public void saveMovies() {
+    public void saveMovies(String movieDetails) {
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(FILE_NAME, true))) {
-            for (Movie movie : movies){
-            bufferedWriter.write(movie.toString());
+            bufferedWriter.write(movieDetails);
             bufferedWriter.newLine();
-        }
             System.out.println("Фильмы сохранены в файл.");
         } catch (IOException exception) {
             System.out.println("Ошибка при загрузке списка фильмов: " + exception.getMessage());
@@ -97,24 +92,17 @@ class MovieManager {
         }
     }
 
-    public void loadMovie() {
-        movies.clear();
+    public List<Movie> loadMovie() {
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(FILE_NAME))) {
             String movieLine;
             while ((movieLine = bufferedReader.readLine()) != null) {
-                String[] parts = movieLine.split(", ");
-                if (parts.length >= 3){
-                    String id = parts[0].trim();
-                    String title = parts[1].trim();
-                    MovieStatus status = MovieStatus.valueOf(parts[2].trim().toUpperCase());
-                    movies.add(new Movie(id, title, status));
-                }
             }
-            log.info("Movies loaded from file.");
         } catch (FileNotFoundException exception) {
             log.error("File not found: {}", exception.getMessage());
         } catch (IOException exception) {
             log.error("I/O error while loading movies: {}", exception.getMessage());
         }
+
+        return null;
     }
 }

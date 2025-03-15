@@ -1,4 +1,4 @@
-package business.app.exception;
+package com.business_app.exception;
 
 public class DateTimeParseException extends Exception{
     public DateTimeParseException() {
