@@ -10,6 +10,7 @@ import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.UUID;
 
 @Slf4j
 public class Main {
@@ -176,7 +177,6 @@ public class Main {
                                 startDate = LocalDate.parse(scanner.nextLine().trim());
                             } catch (DateTimeParseException exception) {
                                 System.out.println("Ошибка: Неверный формат даты. Попробуйте снова.");
-                                log.error("Ошибка: Неверный формат даты.");
                             }
                         }
                         while (endDate == null || endDate.isBefore((startDate))) {
@@ -407,9 +407,6 @@ public class Main {
                     break;
 
                 case 11:
-                    System.out.print("Введите ID записи: ");
-                    String recordId = scanner.nextLine().trim();
-
                     FinanceType type = null;
                     while (type == null) {
                         System.out.print("Введите тип записи (INCOME, EXPENSE): ");
@@ -452,7 +449,8 @@ public class Main {
                         }
                     }
                     if (date != null) {
-                        financeManager.addFinanceRecord(new FinanceRecord(recordId, type, amount, description, date));
+                        financeManager.addFinanceRecord(new FinanceRecord(UUID.randomUUID().toString().substring(0, 5),
+                                type, amount, description, date));
                         System.out.println("Финансовая запись успешно добавлена.");
                     }
                     break;
@@ -468,11 +466,14 @@ public class Main {
                         scanner.nextLine();// Очистка буфера после nextDouble()
 
                         // Проверка бюджета
-                        if (premiereToCheck.isBudgetAvailable(budgetToAdd)) {  // Используем метод для проверки бюджета
+                        if (budgetToAdd > 0) {
                             premiereToCheck.addBudget(budgetToAdd);  // Добавляем бюджет
                             System.out.println("Бюджет для премьеры " + premiereToCheck.getMovieTitle() + ": " + premiereToCheck.getBudget() + " добавлен.");
-
-                            // Экспортируем финансы в CSV после добавления бюджета
+                            // Запись в финансовый менеджер
+                            financeManager.addFinanceRecord(new FinanceRecord(
+                                    UUID.randomUUID().toString().substring(0, 5), FinanceType.INCOME, budgetToAdd,
+                                    "Добавление бюджета к премьере: " + premiereToCheck.getMovieTitle(), LocalDate.now()
+                            ));
                             financeManager.generateFinanceReport(true);
                         } else {
                             System.out.println("Ошибка: бюджет для премьеры не может быть отрицательным или нулевым.");
@@ -504,9 +505,19 @@ public class Main {
                     Premiere premiere = premiereManager.findPremiereById(premiereIdForTickets);
 
                     if (premiere != null) {
+                        double ticketPrice = premiere.getTicketPrice();
+                        double totalIncome = ticketPrice * ticketsToSell;
+
                         // Пробуем продать билеты через метод sellTickets в Premiere
                         if (premiere.sellTickets(ticketsToSell)) {
-                            System.out.println("Билеты успешно проданы.");
+                            System.out.println("Билеты успешно проданы." + totalIncome);
+
+                            // Запись о продаже в финансовый менеджер
+                            financeManager.addFinanceRecord(new FinanceRecord(
+                                    UUID.randomUUID().toString().substring(0, 5), FinanceType.INCOME, totalIncome,
+                                    "Продажа билетов на премьеру: " + premiere.getMovieTitle(), LocalDate.now()
+                            ));
+
                             // Экспортируем финансы в CSV после продажи билетов
                             financeManager.generateFinanceReport(false);
                         } else {
@@ -522,19 +533,31 @@ public class Main {
                     String premiereIdForReturn = scanner.nextLine();
                     System.out.print("Введите количество билетов для возврата: ");
                     int ticketsToReturn = scanner.nextInt();
+                    scanner.nextLine();
 
                     // Находим премьеру по ID
                     Premiere premiereForReturn = premiereManager.findPremiereById(premiereIdForReturn);
 
                     if (premiereForReturn != null) {
+                        double ticketPrice = premiereForReturn.getTicketPrice();
+                        double totalRefund = ticketPrice * ticketsToReturn;
+
                         try {
                             // Возвращаем билеты для найденной премьеры
                             premiereForReturn.returnTickets(ticketsToReturn, premiereForReturn.getTicketSold(), true);
+                            System.out.println("Возвращено билетов на сумму: " + totalRefund);
+
+                            // Запись о возврате в финансовый менеджер
+                            financeManager.addFinanceRecord(new FinanceRecord(
+                                    UUID.randomUUID().toString().substring(0, 5), FinanceType.EXPENSE, totalRefund,
+                                    "Возврат билетов на премьеру: " + premiereForReturn.getMovieTitle(), LocalDate.now()
+                            ));
+
                             // Экспортируем финансы в CSV после возврата билетов
                             financeManager.generateFinanceReport(true);
                         } catch (IllegalArgumentException e) {
                             // Если возникла ошибка (например, возвращаем больше билетов, чем было продано), выводим сообщение
-                            System.out.println(e.getMessage());
+                            System.out.println("Ошибка: " + e.getMessage());
                         }
                     } else {
                         System.out.println("Премьера с таким ID не найдена.");

@@ -14,7 +14,8 @@ import java.util.List;
 @Slf4j
 public class FinanceManager {
 
-    private List<FinanceRecord> financeRecords;
+    private final List<FinanceRecord> financeRecords;
+    private static final String FILE_NAME = "finance_records.csv";
 
     public FinanceManager() {
         this.financeRecords = new ArrayList<>();
@@ -52,7 +53,7 @@ public class FinanceManager {
 
     // Метод для проверки наличия записей
     public boolean hasRecords() {
-        System.out.println("Размер коллекции записей: " + financeRecords.size());
+        System.out.println("Количество записей: " + financeRecords.size());
         return !financeRecords.isEmpty();  // Возвращаем true, если список не пустой
     }
 
@@ -65,7 +66,6 @@ public class FinanceManager {
                 break;
             }
         }
-
         // Если запись найдена, удаляем её
         if (recordToRemove != null) {
             financeRecords.remove(recordToRemove);
@@ -136,7 +136,6 @@ public class FinanceManager {
                 .sum();
     }
 
-
     // Метод для получения суммы возвратов билетов
     public double getTicketRefunds() {
         return financeRecords.stream()
@@ -147,8 +146,7 @@ public class FinanceManager {
 
     // Генерация финансового отчета в формате CSV
     public void generateFinanceReport(boolean printToConsole) {
-        String fileName = "finance_records.csv";  // Имя файла для сохранения
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME))) {
             // Записываем заголовок CSV
             writer.write("ID, Тип, Сумма, Описание, Дата");
             writer.newLine();  // Переход на новую строку
@@ -185,7 +183,7 @@ public class FinanceManager {
                 writer.write(recordLine);  // Запись в файл
                 writer.newLine();  // Переход на новую строку
             }
-            System.out.println("Данные успешно экспортированы в файл " + fileName);
+            System.out.println("Данные успешно экспортированы в файл " + FILE_NAME);
         } catch (IOException e) {
             System.out.println("Ошибка при записи в файл: " + e.getMessage());
         }
@@ -193,8 +191,7 @@ public class FinanceManager {
 
     // Метод для загрузки финансовых записей из файла
     public void loadFinanceRecordsFromFile() {
-        String fileName = "finance_records.csv";  // Имя файла для загрузки
-        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(FILE_NAME))) {
             String line;
             // Пропустить заголовок
             reader.readLine();
@@ -227,7 +224,7 @@ public class FinanceManager {
                     financeRecords.add(record);
                 }
             }
-            log.info("Финансовые записи успешно загружены из файла: " + fileName);
+            log.info("Финансовые записи успешно загружены из файла: " + FILE_NAME);
             System.out.println("Размер загруженных записей: " + financeRecords.size()); // Выводим размер коллекции
         } catch (IOException e) {
             log.warn("Ошибка при загрузке финансовых записей из файла: " + e.getMessage());
