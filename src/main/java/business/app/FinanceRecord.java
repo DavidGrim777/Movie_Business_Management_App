@@ -1,4 +1,4 @@
-package com.business_app;
+package business.app;
 
 import lombok.Getter;
 import lombok.Setter;

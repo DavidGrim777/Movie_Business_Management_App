@@ -1,4 +1,4 @@
-package com.business_app.exception;
+package business.app.exception;
 
 public class NumberFormatException extends Exception{
     public NumberFormatException() {
