@@ -2,12 +2,14 @@ package com.business_app;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
 class MovieManager {
     private List<Movie> movies;
+    private static final String FILE_NAME = "movie.txt";
 
     // Конструктор инициализирует список фильмов
     public MovieManager() {
@@ -22,8 +24,6 @@ class MovieManager {
             return;
         }
         movies.add(movie);
-        System.out.println("Фильм добавлен: " + movie.getTitle());
-        log.info("Фильм добавлен: {}", movie.getTitle());
     }
 
     // Метод для удаления фильма по ID
@@ -79,5 +79,30 @@ class MovieManager {
                 System.out.println(movie);
             }
         }
+    }
+
+    public void saveMovies(String movieDetails) {
+        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(FILE_NAME, true))) {
+            bufferedWriter.write(movieDetails);
+            bufferedWriter.newLine();
+            System.out.println("Фильмы сохранены в файл.");
+        } catch (IOException exception) {
+            System.out.println("Ошибка при загрузке списка фильмов: " + exception.getMessage());
+            log.error("Ошибка при загрузке списка фильмов: {}", exception.getMessage());
+        }
+    }
+
+    public List<Movie> loadMovie() {
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(FILE_NAME))) {
+            String movieLine;
+            while ((movieLine = bufferedReader.readLine()) != null) {
+            }
+        } catch (FileNotFoundException exception) {
+            log.error("File not found: {}", exception.getMessage());
+        } catch (IOException exception) {
+            log.error("I/O error while loading movies: {}", exception.getMessage());
+        }
+
+        return null;
     }
 }

@@ -1,8 +1,16 @@
 package com.business_app;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
+import java.io.Serializable;
 import java.time.LocalDate;
 
-public class FinanceRecord {
+@Getter
+@Setter
+@ToString
+public class FinanceRecord implements Serializable {
 
     private String id;
     private FinanceType type; // тип записи доход/расход
@@ -16,30 +24,5 @@ public class FinanceRecord {
         this.amount = amount;
         this.description = description;
         this.date = date;
-    }
-
-    public LocalDate getDate() {
-        return date;
-    }
-    public String getId() {
-        return id;
-    }
-
-    public FinanceType getType() {
-        return type;
-    }
-
-    public double getAmount() {
-        return amount;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    @Override
-    public String toString() {
-        return "FinanceRecord{id=" + id + ", тип=" + type + ", сумма=" + amount + ", описание='"
-                + description + "', дата='" + date + "'}";
     }
 }
