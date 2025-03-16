@@ -104,11 +104,17 @@ class MovieManager {
             String movieLine;
             while ((movieLine = bufferedReader.readLine()) != null) {
                 String[] parts = movieLine.split(", ");
-                if (parts.length >= 3){
+                if (parts.length < 3 || parts[2] == null || parts[2].trim().isEmpty() || parts[2].contains("null")) {
+                    log.warn("Некорректные данные о статусе фильма: {}", (Object) parts);
+                    continue;
+                }
+                try {
                     String id = parts[0].trim();
                     String title = parts[1].trim();
                     MovieStatus status = MovieStatus.valueOf(parts[2].trim().toUpperCase());
                     movies.add(new Movie(id, title, status));
+                }catch (IllegalArgumentException exception){
+                    log.warn("Ошибка парсинга статуса фильма: {}", parts[2], exception);
                 }
             }
             log.info("Фильмы загружены из файла.");
@@ -117,5 +123,11 @@ class MovieManager {
         } catch (IOException exception) {
             log.error("Ошибка ввода-вывода при загрузке фильмов: {}", exception.getMessage());
         }
+    }
+
+    public List<Movie> getMovies() {
+        if (movies == null)
+            movies = new ArrayList<>();
+        return new ArrayList<>(movies);
     }
 }
