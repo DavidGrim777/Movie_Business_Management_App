@@ -138,9 +138,9 @@ public class PremiereTest {
 
     @ParameterizedTest
     @MethodSource("guestDataProvider")
-    void testAddGuest(String guestName, int guestAge, boolean expectedResult) {
+    void testAddGuest(String guestName, boolean guestAge, boolean expectedResult) {
         // Act: Добавление гостя
-        premiere.addGuest(guestName, guestAge);
+        premiere.addGuest(guestName, guestAge,true);
 
         // Assert: Проверка, был ли добавлен гость в список
         if (expectedResult) {
@@ -153,12 +153,13 @@ public class PremiereTest {
     // Метод-поставщик данных для @MethodSource
     static Stream<Arguments> guestDataProvider() {
         return Stream.of(
-                Arguments.of("Alice", 20, true),       // Валидный гость
-                Arguments.of("Bob", 16, false),        // Недопустимый гость (меньше минимального возраста)
-                Arguments.of("", 25, false),           // Пустое имя
-                Arguments.of(null, 25, false)         // Реальный null
+                Arguments.of("Alice", true, true),       // Валидный гость
+                Arguments.of("Bob", false, false),        // Недопустимый гость (меньше минимального возраста)
+                Arguments.of("", true, false),           // Пустое имя
+                Arguments.of(null, true, false)         // Реальный null
 
-        );}
+        );
+    }
 
     @Test
     void testSetTicketCount() {
@@ -212,7 +213,7 @@ public class PremiereTest {
         premiere.sellTickets(50); // Продаем 50 билетов
         // Пример с возвратом больше билетов, чем продано:
         try {
-            premiere.returnTickets(30, 10,  true); // Пример с количеством больше, чем продано
+            premiere.returnTickets(30, 10, true); // Пример с количеством больше, чем продано
             fail("Ожидалась ошибка: Невозможно вернуть больше билетов, чем было продано");
         } catch (IllegalArgumentException e) {
             assertEquals("Ошибка при возврате билетов: Невозможно вернуть больше билетов, чем было продано.", e.getMessage());
@@ -304,7 +305,6 @@ public class PremiereTest {
     void testReturnTickets(int ticketsToReturn, int initialSold, int expectedSold, int expectedAvailable, boolean shouldThrowException) {
         // Устанавливаем начальные значения
         premiere.setTicketSold(initialSold);
-        int initialAvailableTickets = premiere.getTicketCount();
 
         if (shouldThrowException) {
             // Проверяем успешный возврат билетов
@@ -350,4 +350,5 @@ public class PremiereTest {
             });
             assertEquals("Бюджет не может быть отрицательным или нулевым.", exception.getMessage());
         }
-    }}
+    }
+}

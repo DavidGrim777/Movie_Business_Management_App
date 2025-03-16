@@ -7,8 +7,10 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.InputMismatchException;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.UUID;
 
 @Slf4j
 public class Main {
@@ -39,7 +41,8 @@ public class Main {
             System.out.println("15. Возврат билетов");
             System.out.println("16. Показать финансовый отчет");
             System.out.println("17. Добавить отзыв");
-            System.out.println("18. Выйти");
+            System.out.println("18. Показать отзывы");
+            System.out.println("19. Выйти");
 
             System.out.print("Выберите действие: ");
             int choice;
@@ -167,16 +170,28 @@ public class Main {
                     String premiereIdForGuest = scanner.nextLine();
                     System.out.print("Введите имя гостя: ");
                     String guestName = scanner.nextLine();
-                    System.out.print("Введите возраст гостя: ");
-                    int guestAge = scanner.nextInt();
-                    // Находим премьеру по ID
-                    Premiere premiereForGuest = premiereManager.findPremiereById(premiereIdForGuest);
+                    String isGuestAge; // Объявляем переменную ЗАРАНЕЕ
+                    do {
+                        System.out.print("Возраст гостя больше 18 ( да / нет ): ");
+                        isGuestAge = scanner.nextLine().trim().toLowerCase();
 
-                    if (premiereForGuest != null) {
-                        // Добавляем гостя в найденную премьеру
-                        premiereForGuest.addGuest(guestName, guestAge);
+                        if (!isGuestAge.equals("да") && !isGuestAge.equals("нет")) {
+                            System.out.println("Пожалуйста, введите 'да' или 'нет'.");
+                        }
+                    } while (!isGuestAge.equals("да") && !isGuestAge.equals("нет"));
+
+                    if (isGuestAge.equals("да")) {
+                        // Находим премьеру по ID
+                        Premiere premiereForGuest = premiereManager.findPremiereById(premiereIdForGuest);
+
+                        if (premiereForGuest != null) {
+                            // Добавляем гостя в найденную премьеру
+                            premiereForGuest.addGuest(guestName, true, false);
+                        } else {
+                            System.out.println("Премьера с таким ID не найдена.");
+                        }
                     } else {
-                        System.out.println("Премьера с таким ID не найдена.");
+                        System.out.println("Гость не достиг 18 лет. Добавление невозможно.");
                     }
                     break;
 
@@ -196,14 +211,24 @@ public class Main {
                             Premiere premiere = entry.getValue();  // Получаем объект премьеры
                             System.out.println("ID: " + entry.getKey() + ", Название: " + premiere.getMovieTitle() +
                                     ", Дата: " + premiere.getDate() + ", Место: " + premiere.getLocation());
+                            // Загружаем гостей из файла
+                            premiere.loadGuestsFromFile();
+                            List<String> guests = premiere.getGuestList();
+
+                            if (guests.isEmpty()) {
+                                System.out.println("  Гостей пока нет.");
+                            } else {
+                                System.out.println("  Гости:");
+                                for (String guest : guests) {
+                                    System.out.println("    - " + guest);
+                                }
+                            }
+                            System.out.println(); // Пустая строка для разделения премьер
                         }
                     }
                     break;
 
                 case 11:
-                    System.out.print("Введите ID записи: ");
-                    String recordId = scanner.nextLine().trim();
-
                     FinanceType type = null;
                     while (type == null) {
                         System.out.print("Введите тип записи (INCOME, EXPENSE): ");
@@ -246,7 +271,8 @@ public class Main {
                         }
                     }
                     if (date != null) {
-                        financeManager.addFinanceRecord(new FinanceRecord(recordId, type, amount, description, date));
+                        financeManager.addFinanceRecord(new FinanceRecord(UUID.randomUUID().toString().substring(0, 5),
+                                type, amount, description, date));
                         System.out.println("Финансовая запись успешно добавлена.");
                     }
                     break;
@@ -259,13 +285,17 @@ public class Main {
                     if (premiereToCheck != null) {
                         System.out.print("Введите сумму бюджета для добавления: ");
                         double budgetToAdd = scanner.nextDouble();
+                        scanner.nextLine();// Очистка буфера после nextDouble()
 
                         // Проверка бюджета
-                        if (premiereToCheck.isBudgetAvailable(budgetToAdd)) {  // Используем метод для проверки бюджета
+                        if (budgetToAdd > 0) {
                             premiereToCheck.addBudget(budgetToAdd);  // Добавляем бюджет
                             System.out.println("Бюджет для премьеры " + premiereToCheck.getMovieTitle() + ": " + premiereToCheck.getBudget() + " добавлен.");
-
-                            // Экспортируем финансы в CSV после добавления бюджета
+                            // Запись в финансовый менеджер
+                            financeManager.addFinanceRecord(new FinanceRecord(
+                                    UUID.randomUUID().toString().substring(0, 5), FinanceType.INCOME, budgetToAdd,
+                                    "Добавление бюджета к премьере: " + premiereToCheck.getMovieTitle(), LocalDate.now()
+                            ));
                             financeManager.generateFinanceReport(true);
                         } else {
                             System.out.println("Ошибка: бюджет для премьеры не может быть отрицательным или нулевым.");
@@ -291,14 +321,25 @@ public class Main {
                     String premiereIdForTickets = scanner.nextLine(); // Вводим ID премьеры
                     System.out.print("Введите количество билетов для продажи: ");
                     int ticketsToSell = scanner.nextInt();
+                    scanner.nextLine(); // Очистка буфера
 
                     // Находим премьеру по ID
                     Premiere premiere = premiereManager.findPremiereById(premiereIdForTickets);
 
                     if (premiere != null) {
+                        double ticketPrice = premiere.getTicketPrice();
+                        double totalIncome = ticketPrice * ticketsToSell;
+
                         // Пробуем продать билеты через метод sellTickets в Premiere
                         if (premiere.sellTickets(ticketsToSell)) {
-                            System.out.println("Билеты успешно проданы.");
+                            System.out.println("Билеты успешно проданы." + totalIncome);
+
+                            // Запись о продаже в финансовый менеджер
+                            financeManager.addFinanceRecord(new FinanceRecord(
+                                    UUID.randomUUID().toString().substring(0, 5), FinanceType.INCOME, totalIncome,
+                                    "Продажа билетов на премьеру: " + premiere.getMovieTitle(), LocalDate.now()
+                            ));
+
                             // Экспортируем финансы в CSV после продажи билетов
                             financeManager.generateFinanceReport(false);
                         } else {
@@ -314,19 +355,31 @@ public class Main {
                     String premiereIdForReturn = scanner.nextLine();
                     System.out.print("Введите количество билетов для возврата: ");
                     int ticketsToReturn = scanner.nextInt();
+                    scanner.nextLine();
 
                     // Находим премьеру по ID
                     Premiere premiereForReturn = premiereManager.findPremiereById(premiereIdForReturn);
 
                     if (premiereForReturn != null) {
+                        double ticketPrice = premiereForReturn.getTicketPrice();
+                        double totalRefund = ticketPrice * ticketsToReturn;
+
                         try {
                             // Возвращаем билеты для найденной премьеры
                             premiereForReturn.returnTickets(ticketsToReturn, premiereForReturn.getTicketSold(), true);
+                            System.out.println("Возвращено билетов на сумму: " + totalRefund);
+
+                            // Запись о возврате в финансовый менеджер
+                            financeManager.addFinanceRecord(new FinanceRecord(
+                                    UUID.randomUUID().toString().substring(0, 5), FinanceType.EXPENSE, totalRefund,
+                                    "Возврат билетов на премьеру: " + premiereForReturn.getMovieTitle(), LocalDate.now()
+                            ));
+
                             // Экспортируем финансы в CSV после возврата билетов
                             financeManager.generateFinanceReport(true);
                         } catch (IllegalArgumentException e) {
                             // Если возникла ошибка (например, возвращаем больше билетов, чем было продано), выводим сообщение
-                            System.out.println(e.getMessage());
+                            System.out.println("Ошибка: " + e.getMessage());
                         }
                     } else {
                         System.out.println("Премьера с таким ID не найдена.");
@@ -345,21 +398,61 @@ public class Main {
                 case 17: // Добавление отзыва
                     System.out.print("Введите ID фильма для отзыва: ");
                     String premiereIdForReview = scanner.nextLine();
-                    System.out.print("Введите ваш отзыв: ");
-                    String reviewText = scanner.nextLine();
-                    // Ищем премьеру для отзыва
+
                     Premiere premiereForReview = premiereManager.findPremiereById(premiereIdForReview);
 
                     if (premiereForReview != null) {
-                        // Добавляем отзыв для найденной премьеры
-                        premiereForReview.addReview(reviewText);
+                        System.out.print("Введите ваш отзыв: ");
+                        String review = scanner.nextLine();
+                        // Добавляем отзыв в список и сохраняем в файл
+                        premiereForReview.getReviews().add(review);
+                        premiereForReview.saveReviewsToFile(false);
+
+                        // Загружаем и выводим все отзывы
+                        premiereForReview.loadReviewsFromFile();
+                        List<String> reviews = premiereForReview.getReviews();
+
                         System.out.println("Отзыв добавлен для премьеры " + premiereForReview.getMovieTitle());
+                        if (reviews.isEmpty()) {
+                            System.out.println("  Отзывов пока нет.");
+                        } else {
+                            for (String rev : reviews) {
+                                System.out.println("  - " + rev);
+                            }
+                        }
                     } else {
                         System.out.println("Премьера с таким ID не найдена.");
                     }
                     break;
 
                 case 18:
+                    System.out.print("Введите ID премьеры для просмотра отзывов: ");
+                    String premiereIdForReviews = scanner.nextLine();
+                    // Ищем премьеру в менеджере
+                    Premiere premiereToShowReviews = premiereManager.findPremiereById(premiereIdForReviews);
+
+                    if (premiereToShowReviews != null) {
+                        // Загружаем отзывы из файла перед отображением
+                        premiereToShowReviews.loadReviewsFromFile();
+
+                        List<String> reviews = premiereToShowReviews.getReviews();
+
+                        String movieTitle = premiereToShowReviews.getMovieTitle();
+
+                        if (reviews.isEmpty()) {
+                            System.out.println("К премьере " + movieTitle + " пока нет отзывов.");
+                        } else {
+                            System.out.println("Отзывы о премьере " + movieTitle + ":");
+                            for (String review : reviews) {
+                                System.out.println("- " + review);
+                            }
+                        }
+                    } else {
+                        System.out.println("Премьера с таким ID не найдена.");
+                    }
+                    break;
+
+                case 19:
                     System.out.println("Выход из приложения...");
                     scanner.close();
                     return;
@@ -370,6 +463,4 @@ public class Main {
         }
     }
 }
-
-
 
