@@ -1,4 +1,4 @@
-package com.business_app;
+package movie.business.app;
 
 import com.github.javafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;

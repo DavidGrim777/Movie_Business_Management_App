@@ -1,4 +1,4 @@
-package com.business_app;
+package movie.business.app;
 
 import java.io.Serializable;
 import java.time.LocalDate;

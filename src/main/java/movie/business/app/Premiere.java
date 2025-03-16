@@ -1,4 +1,4 @@
-package com.business_app;
+package movie.business.app;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
