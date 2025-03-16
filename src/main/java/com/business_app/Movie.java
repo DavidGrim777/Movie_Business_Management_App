@@ -36,8 +36,8 @@ public class Movie {
         this.endDate = endDate;
         this.status = status;
         this.budget = budget;
-        this.producer = producer;
-        this.actors = actors;
+        this.producer = (producer != null) ? producer : new ArrayList<>();
+        this.actors = (actors != null) ? actors : new ArrayList<>();
     }
 
     // Геттеры для получения значений полей
@@ -112,6 +112,7 @@ public class Movie {
         if (startDate == null) {
             System.out.println("Дата начала не может быть пустой.");
             log.warn("Дата начала не может быть пустой.");
+            return;
         }
         this.startDate = startDate;
     }
@@ -120,6 +121,7 @@ public class Movie {
         if (endDate == null) {
             System.out.println("Дата окончания не может быть пустой.");
             log.warn("Дата окончания не может быть пустой.");
+            return;
         }
         this.endDate = endDate;
     }
@@ -163,29 +165,32 @@ public class Movie {
             log.warn("Имя продюсера не может быть пустым.");
             return;
         }
+        if (producer == null){
+            producer = new ArrayList<>();
+        }
         if (!producer.contains(producerName)) {
             producer.add(producerName);
-            System.out.println("Продюсера добавлен: " + producerName);
-            log.info("Продюсера добавлен: {}", producerName);
+            System.out.println("Продюсер добавлен: " + producerName);
+            log.info("Продюсер добавлен: {}", producerName);
         } else {
-            System.out.println("Этот продюсера уже добавлен.");
-            log.warn("Этот продюсера уже добавлен.");
+            System.out.println("Этот продюсер уже добавлен.");
+            log.warn("Этот продюсер уже добавлен.");
         }
     }
 
     public void removeProducer(String producerName) {
 
-        if (producerName == null || producerName.trim().isEmpty()) {
+        if (producerName == null || producerName.trim().isEmpty() || producer == null || !producer.remove(producerName)) {
             System.out.println("Имя продюсера не может быть пустым.");
             log.warn("Имя продюсера не может быть пустым.");
             return;
         }
         if (producer.remove(producerName)) {
-            System.out.println("Продюсера удалён: " + producerName);
-            log.info("Продюсера удалён: {}", producerName);
+            System.out.println("Продюсер удалён: " + producerName);
+            log.info("Продюсер удалён: {}", producerName);
         } else {
-            System.out.println("Продюсера не найден.");
-            log.info("Продюсера не найден.");
+            System.out.println("Продюсер не найден.");
+            log.info("Продюсер не найден.");
         }
     }
 
@@ -196,6 +201,9 @@ public class Movie {
             System.out.println("Имя актёра не может быть пустым.");
             log.warn("Имя актёра не может быть пустым.");
             return;
+        }
+        if (actors == null){
+            actors = new ArrayList<>();
         }
         if (!actors.contains(actorName)) {
             actors.add(actorName);
@@ -209,7 +217,7 @@ public class Movie {
 
     public void removeActor(String actorName) {
 
-        if (actorName == null || actorName.trim().isEmpty()) {
+        if (actorName == null || actorName.trim().isEmpty() || actors == null || !actors.remove(actorName)) {
             System.out.println("Имя актёра не может быть пустым.");
             log.warn("Имя актёра не может быть пустым.");
             return;

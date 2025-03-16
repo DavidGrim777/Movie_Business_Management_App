@@ -45,6 +45,7 @@ class MovieManager {
             movies.remove(movieToRemove);
             System.out.println("Фильм удалён: " + movieToRemove.getTitle());
             log.info("Фильм удалён: {}", movieToRemove.getTitle());
+            saveMovies();
         } else {
             System.out.println("Фильм с ID " + movieId + " не найден.");
             log.warn("Фильм с ID {} не найден.", movieId);
@@ -85,7 +86,7 @@ class MovieManager {
     }
 
     public void saveMovies() {
-        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(FILE_NAME, true))) {
+        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(FILE_NAME, false))) {
             for (Movie movie : movies){
             bufferedWriter.write(movie.toString());
             bufferedWriter.newLine();
@@ -110,11 +111,11 @@ class MovieManager {
                     movies.add(new Movie(id, title, status));
                 }
             }
-            log.info("Movies loaded from file.");
+            log.info("Фильмы загружены из файла.");
         } catch (FileNotFoundException exception) {
-            log.error("File not found: {}", exception.getMessage());
+            log.error("Файл не найден: {}", exception.getMessage());
         } catch (IOException exception) {
-            log.error("I/O error while loading movies: {}", exception.getMessage());
+            log.error("Ошибка ввода-вывода при загрузке фильмов: {}", exception.getMessage());
         }
     }
 }
