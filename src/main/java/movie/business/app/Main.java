@@ -99,7 +99,7 @@ public class Main {
                     System.out.println("Фильм добавлен: " + title + " genre: " + genre);
 
                     String movieData = movieId + ", " + title + ", " + status + ", " + genre;
-                    movieManager.saveMovies(movieData);
+                    movieManager.saveMovies();
                     break;
 
 

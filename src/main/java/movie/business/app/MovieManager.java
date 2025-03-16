@@ -81,10 +81,12 @@ class MovieManager {
         }
     }
 
-    public void saveMovies(String movieDetails) {
+    public void saveMovies() {
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(FILE_NAME, true))) {
-            bufferedWriter.write(movieDetails);
-            bufferedWriter.newLine();
+            for (Movie movie : movies) {
+                bufferedWriter.write(movie.getId() + ", " + movie.getTitle() + ", " + movie.getStatus());
+                bufferedWriter.newLine();
+            }
             System.out.println("Фильмы сохранены в файл.");
         } catch (IOException exception) {
             System.out.println("Ошибка при загрузке списка фильмов: " + exception.getMessage());
@@ -102,7 +104,10 @@ class MovieManager {
         } catch (IOException exception) {
             log.error("I/O error while loading movies: {}", exception.getMessage());
         }
-
         return null;
+    }
+
+    public List<Movie> getMovies() {
+        return new ArrayList<>(movies);
     }
 }
