@@ -360,16 +360,28 @@ public class Main {
                     String premiereIdForGuest = scanner.nextLine();
                     System.out.print("Введите имя гостя: ");
                     String guestName = scanner.nextLine();
-                    System.out.print("Введите возраст гостя: ");
-                    int guestAge = scanner.nextInt();
-                    // Находим премьеру по ID
-                    Premiere premiereForGuest = premiereManager.findPremiereById(premiereIdForGuest);
+                    String isGuestAge; // Объявляем переменную ЗАРАНЕЕ
+                    do {
+                        System.out.print("Возраст гостя больше 18 ( да / нет ): ");
+                        isGuestAge = scanner.nextLine().trim().toLowerCase();
 
-                    if (premiereForGuest != null) {
-                        // Добавляем гостя в найденную премьеру
-                        premiereForGuest.addGuest(guestName, guestAge);
+                        if (!isGuestAge.equals("да") && !isGuestAge.equals("нет")) {
+                            System.out.println("Пожалуйста, введите 'да' или 'нет'.");
+                        }
+                    } while (!isGuestAge.equals("да") && !isGuestAge.equals("нет"));
+
+                    if (isGuestAge.equals("да")) {
+                        // Находим премьеру по ID
+                        Premiere premiereForGuest = premiereManager.findPremiereById(premiereIdForGuest);
+
+                        if (premiereForGuest != null) {
+                            // Добавляем гостя в найденную премьеру
+                            premiereForGuest.addGuest(guestName, true, false);
+                        } else {
+                            System.out.println("Премьера с таким ID не найдена.");
+                        }
                     } else {
-                        System.out.println("Премьера с таким ID не найдена.");
+                        System.out.println("Гость не достиг 18 лет. Добавление невозможно.");
                     }
                     break;
 
@@ -584,7 +596,7 @@ public class Main {
                         String review = scanner.nextLine();
                         // Добавляем отзыв в список и сохраняем в файл
                         premiereForReview.getReviews().add(review);
-                        premiereForReview.saveReviewsToFile();
+                        premiereForReview.saveReviewsToFile(false);
 
                         // Загружаем и выводим все отзывы
                         premiereForReview.loadReviewsFromFile();
@@ -618,9 +630,9 @@ public class Main {
                         String movieTitle = premiereToShowReviews.getMovieTitle();
 
                         if (reviews.isEmpty()) {
-                            System.out.println("К премьере " +  movieTitle + " пока нет отзывов.");
+                            System.out.println("К премьере " + movieTitle + " пока нет отзывов.");
                         } else {
-                            System.out.println("Отзывы о премьере " +  movieTitle + ":");
+                            System.out.println("Отзывы о премьере " + movieTitle + ":");
                             for (String review : reviews) {
                                 System.out.println("- " + review);
                             }
