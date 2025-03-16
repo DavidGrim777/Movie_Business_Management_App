@@ -1,4 +1,4 @@
-package com.business_app.exception;
+package movie.business.app.exception;
 
 public class IllegalArgumentException extends Exception{
     public IllegalArgumentException() {

@@ -1,4 +1,4 @@
-package com.business_app;
+package movie.business.app;
 
 public enum FinanceType {
     INCOME, EXPENSE;

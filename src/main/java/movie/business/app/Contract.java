@@ -1,12 +1,15 @@
-package com.business_app;
+package movie.business.app;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;
 
+@Getter
 @Slf4j
 public class Contract {
 
+    // Геттеры (методы для получения значений полей)
     private String id;                    // Уникальный идентификатор контракта
     private String personName;            // Имя человека, с которым заключен контракт
     private String role;                  // Роль человека в проекте
@@ -24,34 +27,10 @@ public class Contract {
         this.salary = salary;
     }
 
-    // Геттеры (методы для получения значений полей)
-    public String getId() {
-        return id;
-    }
-
-    public String getPersonName() {
-        return personName;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public LocalDate getStartDate() {
-        return startDate;
-    }
-
-    public LocalDate getEndDate() {
-        return endDate;
-    }
-
-    public double getSalary() {
-        return salary;
-    }
-
     // Сеттеры (методы для изменения значений полей с проверкой)
     public void setId(String id) {
         if (id == null || id.trim().isEmpty()) {
+            System.out.println("ID не может быть пустым.");
             log.error("ID не может быть пустым.");
             return;
         }
@@ -60,7 +39,9 @@ public class Contract {
 
     public void setPersonName(String personName) {
         if (personName == null || personName.trim().isEmpty()) {
+            System.out.println("Имя не может быть пустым.");
             log.error("Имя не может быть пустым.");
+            return;
         }
         this.personName = personName;
     }
@@ -68,6 +49,8 @@ public class Contract {
     public void setRole(String role) {
         if (role == null || role.trim().isEmpty()) {
             log.error("Роль не может быть пустой.");
+            System.out.println("Роль не может быть пустой.");
+            return;
         }
         this.role = role;
     }
@@ -98,7 +81,7 @@ public class Contract {
 
     // Метод проверки, активен ли контракт (если дата окончания ещё не наступила)
     public boolean isActive() {
-        return endDate == null && !endDate.isAfter(LocalDate.now());
+        return endDate != null && endDate.isAfter(LocalDate.now());
     }
 
     // Переопределение метода toString() для вывода информации о контракте

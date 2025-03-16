@@ -1,10 +1,10 @@
-package com.business_app;
+package movie.business.app;
 
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
+
 
 @Slf4j
 public class ContractManager {
@@ -33,16 +33,9 @@ public class ContractManager {
             log.warn("Попытка удалить контракт с пустым ID.");
             return;
         }
-        Contract contractToRemove = null;
-        for (Contract contract : contracts) {
-            if (contract.getId().equals(contractId)) {
-                contractToRemove = contract;
-                break;
-            }
-        }
-        if (contractToRemove != null) {
-            contracts.remove(contractToRemove);
-            System.out.println("Контракт удалён: " + contractToRemove.getId());
+        boolean remoed = contracts.removeIf(contract -> contract.getId().equals(contractId));
+        if (remoed) {
+            System.out.println("Контракт удалён: " + contractId);
         } else {
             System.out.println("Контракт с ID " + contractId + " не найден.");
             log.error("Контракт с ID {} не найден.", contractId);
