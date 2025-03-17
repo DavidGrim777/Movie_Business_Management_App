@@ -477,19 +477,10 @@ public class Main {
                         double budgetToAdd = scanner.nextDouble();
                         scanner.nextLine();// Очистка буфера после nextDouble()
 
-                        // Проверка бюджета
-                        if (budgetToAdd > 0) {
-                            premiereToCheck.addBudget(budgetToAdd);  // Добавляем бюджет
-                            System.out.println("Бюджет для премьеры " + premiereToCheck.getMovieTitle() + ": " + premiereToCheck.getBudget() + " добавлен.");
-                            // Запись в финансовый менеджер
-                            financeManager.addFinanceRecord(new FinanceRecord(
-                                    UUID.randomUUID().toString().substring(0, 5), FinanceType.INCOME, budgetToAdd,
-                                    "Добавление бюджета к премьере: " + premiereToCheck.getMovieTitle(), LocalDate.now()
-                            ));
+                        // Вызываем общий метод, который уже делает всё, что нужно
+                        financeManager.addPremiereBudget(premiereToCheck, budgetToAdd);
+
                             financeManager.generateFinanceReport(true);
-                        } else {
-                            System.out.println("Ошибка: бюджет для премьеры не может быть отрицательным или нулевым.");
-                        }
                     } else {
                         System.out.println("Премьера с таким ID не найдена.");
                     }

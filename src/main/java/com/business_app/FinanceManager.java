@@ -1,5 +1,6 @@
 package com.business_app;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedWriter;
@@ -10,16 +11,30 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
+@Getter
 public class FinanceManager {
 
     private final List<FinanceRecord> financeRecords;
     private static final String FILE_NAME = "finance_records.csv";
+    private boolean isTestMode;  // Флаг для режима тестирования
 
     public FinanceManager() {
         this.financeRecords = new ArrayList<>();
+        this.isTestMode = false;  // По умолчанию не в тестовом режиме
         loadFinanceRecordsFromFile();  // Загружаем данные из файла при создании объекта
+    }
+    // Установить флаг, чтобы знать, когда очистить данные в тестах
+    public void setTestMode(boolean isTestMode) {
+        this.isTestMode = isTestMode;
+    }
+    // Метод для очистки данных (только если мы в тестовом режиме)
+    public void clearData() {
+        if (isTestMode) {
+            financeRecords.clear();
+        }
     }
 
     // Метод для добавления финансовой записи
@@ -48,7 +63,7 @@ public class FinanceManager {
         }
 
         financeRecords.add(record);
-        log.info("Финансовая запись добавлена: " + record);
+        log.info("Финансовая запись добавлена: {} ", record);
     }
 
     // Метод для проверки наличия записей
@@ -69,9 +84,9 @@ public class FinanceManager {
         // Если запись найдена, удаляем её
         if (recordToRemove != null) {
             financeRecords.remove(recordToRemove);
-            log.info("Финансовая запись с ID " + recordId + " удалена.");
+            log.info("Финансовая запись с ID {} удалена. ", recordId);
         } else {
-            log.warn("Ошибка: Запись с ID " + recordId + " не найдена.");
+            log.warn("Ошибка: Запись с ID {} не найдена.", recordId);
             throw new IllegalArgumentException("Запись с таким ID не найдена.");
         }
     }
@@ -107,27 +122,6 @@ public class FinanceManager {
         return totalIncome;  // Возвращаем общую сумму доходов
     }
 
-    // Метод для добавления бюджета для премьеры
-    public void addPremiereBudget(Premiere premiere, double budgetToAdd) {
-        if (budgetToAdd > 0) {
-            premiere.addBudget(budgetToAdd); // Увеличиваем бюджет премьеры
-
-            // Создаем запись о доходе
-            FinanceRecord record = new FinanceRecord(
-                    String.valueOf(financeRecords.size() + 1), // Преобразуем число в строку для ID
-                    FinanceType.INCOME, // Тип - доход
-                    budgetToAdd, // Сумма добавленного бюджета
-                    "Бюджет для премьеры: " + premiere.getMovieTitle(), // Описание
-                    LocalDate.now() // Дата
-            );
-
-            financeRecords.add(record); // Добавляем запись в список финансовых операций
-            System.out.println("Финансовая запись добавлена: " + record.getDescription() + ", $" + record.getAmount());
-        } else {
-            System.out.println("Ошибка: бюджет должен быть больше 0.");
-        }
-    }
-
     // Метод для получения суммы продаж билетов
     public double getTicketSales() {
         return financeRecords.stream()
@@ -143,6 +137,30 @@ public class FinanceManager {
                 .mapToDouble(FinanceRecord::getAmount)
                 .sum();
     }
+
+    // Метод для добавления бюджета для премьеры
+    public void addPremiereBudget(Premiere premiere, double budgetToAdd) {
+        if (budgetToAdd <= 0){
+            log.warn("Ошибка: бюджет должен быть больше 0.");
+            System.out.println("Ошибка: бюджет должен быть больше 0.");
+            return;
+        }
+
+        premiere.addBudget(budgetToAdd); // Увеличиваем бюджет премьеры
+
+        // Создаем запись о доходе
+        FinanceRecord record = new FinanceRecord(
+                UUID.randomUUID().toString().substring(0, 5), // Генерируем случайный ID
+                FinanceType.INCOME, // Тип - доход
+                budgetToAdd, // Сумма добавленного бюджета
+                "Бюджет для премьеры: " + premiere.getMovieTitle(), // Описание
+                LocalDate.now() // Дата
+        );
+
+        financeRecords.add(record); // Добавляем запись в список финансовых операций
+        System.out.println("Финансовая запись добавлена: " + record);
+    }
+
 
     // Генерация финансового отчета в формате CSV
     public void generateFinanceReport(boolean printToConsole) {
@@ -184,8 +202,9 @@ public class FinanceManager {
                 writer.newLine();  // Переход на новую строку
             }
             System.out.println("Данные успешно экспортированы в файл " + FILE_NAME);
+            log.info("Данные успешно экспортированы в файл {}", FILE_NAME);
         } catch (IOException e) {
-            System.out.println("Ошибка при записи в файл: " + e.getMessage());
+            log.error("Ошибка при записи в файл: {}", e.getMessage());
         }
     }
 
@@ -214,7 +233,7 @@ public class FinanceManager {
                             type = FinanceType.valueOf(typeString);
                         }
                     } catch (IllegalArgumentException e) {
-                        log.warn("Неизвестный тип записи: " + typeString + ". Запись будет пропущена.");
+                        log.warn("Неизвестный тип записи.{} Запись будет пропущена", typeString);
                         continue; // Пропустить некорректную запись
                     }
 
@@ -227,7 +246,7 @@ public class FinanceManager {
             log.info("Финансовые записи успешно загружены из файла: " + FILE_NAME);
             System.out.println("Размер загруженных записей: " + financeRecords.size()); // Выводим размер коллекции
         } catch (IOException e) {
-            log.warn("Ошибка при загрузке финансовых записей из файла: " + e.getMessage());
+            log.error("Ошибка при загрузке финансовых записей из файла {}", e.getMessage());
             System.out.println("Ошибка при загрузке финансовых записей из файла: " + e.getMessage());
         }
     }

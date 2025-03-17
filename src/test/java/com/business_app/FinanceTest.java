@@ -21,6 +21,8 @@ public class FinanceTest {
     void setUp() {
         // Создаем новый объект FinanceManager перед каждым тестом
         financeManager = new FinanceManager();
+        financeManager.setTestMode(true);  // Включаем тестовый режим
+        financeManager.clearData();  // Очистить данные перед каждым тестом
     }
 
     // Параметризованный тест для добавления записи
@@ -94,9 +96,8 @@ public class FinanceTest {
 
         FinanceRecord invalidRecord = new FinanceRecord("1", FinanceType.EXPENSE, amount, description, date);
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            financeManager.addFinanceRecord(invalidRecord);
-        });
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+            financeManager.addFinanceRecord(invalidRecord));
 
         assertEquals("Сумма должна быть больше 0.", exception.getMessage());
     }
@@ -113,9 +114,9 @@ public class FinanceTest {
 
         FinanceRecord record = new FinanceRecord(id, type, amount, description, date);
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            financeManager.addFinanceRecord(record);
-        });
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+            financeManager.addFinanceRecord(record));
+
 
         assertEquals("Описание не может быть пустым.", exception.getMessage());
     }
@@ -132,9 +133,9 @@ public class FinanceTest {
         FinanceRecord invalidType = new FinanceRecord("1", null, 1000.0, "Salary",date);
 
         // Act & Assert: проверка выбрасывания исключения при добавлении записи с некорректным типом null
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            financeManager.addFinanceRecord(invalidType);
-        });
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+            financeManager.addFinanceRecord(invalidType));
+
 
         assertEquals("Некорректный тип записи: null", exception.getMessage());
     }
@@ -151,9 +152,8 @@ public class FinanceTest {
         FinanceRecord invalidRecord = new FinanceRecord("1", null, 1000.0, "Invalid type", date);
 
         // Act & Assert: проверка выбрасывания исключения при добавлении записи с некорректным типом
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            financeManager.addFinanceRecord(invalidRecord);
-        });
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+            financeManager.addFinanceRecord(invalidRecord));
 
         assertEquals("Некорректный тип записи: null", exception.getMessage());
     }
@@ -165,9 +165,8 @@ public class FinanceTest {
         FinanceRecord record = new FinanceRecord("1", FinanceType.EXPENSE, 200.0, "Groceries", null); // Нулевая дата
 
         // Act & Assert: проверка выбрасывания исключения, если дата null
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            financeManager.addFinanceRecord(record);
-        });
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+            financeManager.addFinanceRecord(record));
 
         assertEquals("Дата не может быть пустой.", exception.getMessage());
     }
@@ -175,9 +174,6 @@ public class FinanceTest {
     @Test
     void testHasRecords_noRecords() {
         // Arrange
-        FinanceManager financeManager = new FinanceManager();
-
-        // Act
         boolean hasRecords = financeManager.hasRecords();
 
         // Assert: метод должен вернуть false, если нет записей
@@ -200,7 +196,6 @@ public class FinanceTest {
     @Test
     void testDateValidation_validDate() {
         // Arrange
-        FinanceManager financeManager = new FinanceManager();
         FinanceRecord record = new FinanceRecord("1", FinanceType.EXPENSE, 200.0, "Groceries", LocalDate.of(2025, 2, 10)); // Валидная дата
 
         // Act
@@ -210,10 +205,33 @@ public class FinanceTest {
         assertEquals(1, financeManager.getAllFinanceRecords().size());
         assertEquals(record, financeManager.getAllFinanceRecords().get(0));
     }
+
+    @Test
+    void testAddFinanceRecord_throwsIllegalArgumentException() {
+        // Arrange: Создаем экземпляр FinanceManager
+        FinanceManager financeManager = new FinanceManager();
+
+        // Создаем invalidRecord, который должен вызвать исключение
+        FinanceRecord invalidRecord = new FinanceRecord(
+                "Invalid ID",
+                FinanceType.EXPENSE,
+                -100.0, // Некорректная сумма, которая должна вызвать исключение
+                "Invalid record",
+                LocalDate.now()
+        );
+
+        // Act & Assert: Проверяем, что при добавлении такого invalidRecord будет выброшено исключение
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+            financeManager.addFinanceRecord(invalidRecord));
+
+        // Assert: Проверка сообщения об ошибке в исключении
+        assertEquals("Сумма должна быть больше 0.", exception.getMessage(),
+                "Сообщение об ошибке должно быть: Сумма должна быть больше 0.");
+    }
+
     @Test
     void testRemoveFinanceRecord_recordExists() {
         // Arrange
-        FinanceManager financeManager = new FinanceManager();
         FinanceRecord record = new FinanceRecord("1", FinanceType.EXPENSE, 200.0, "Groceries", LocalDate.of(2025, 2, 10));
         financeManager.addFinanceRecord(record);
 

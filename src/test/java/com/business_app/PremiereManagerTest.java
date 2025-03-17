@@ -13,35 +13,31 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PremiereManagerTest {
+
     private PremiereManager premiereManager;
     private Premiere premiere;
 
     @BeforeEach
     void setUp() {
         premiereManager = new PremiereManager();
+        premiereManager.setTestMode(true);  // Включаем тестовый режим
+        premiereManager.clearData();  // Очищаем данные перед каждым тестом
+
         // Используем правильный формат для даты с учетом часового пояса
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm z");
         String dateString = "02.02.2025 10:00 +03:00";  // Формат с часовым поясом
         ZonedDateTime date = ZonedDateTime.parse(dateString, formatter);
-        premiere = new Premiere("1", "Titanic", date, "Cinema City", 100);
+        premiere = new Premiere("1", "Titanic", date, "IMAX", 150);
     }
 
     @Test
     void testAddPremiere() {
-        // Используем правильный формат для даты с учетом часового пояса
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm z");
-        String dateString = "02.02.2025 10:00 +03:00";  // Формат с часовым поясом
-        ZonedDateTime date = ZonedDateTime.parse(dateString, formatter);
-
-        // Arrange: Подготовка данных
-        Premiere premiereToAdd = new Premiere("2", "Avatar", date, "IMAX", 200);
-
-        // Act: Добавление премьеры
-        premiereManager.addPremiere(premiereToAdd);
+        // Act
+        premiereManager.addPremiere(premiere);
 
         // Assert: Проверка, что премьера была добавлена
-        assertEquals(1, premiereManager.getPremiereCount(), "Количество премьер должно быть 1.");
-        assertTrue(premiereManager.getPremiereMap().containsKey("2"), "Премьера с ID 2 должна быть добавлена.");
+        assertEquals(1, premiereManager.getPremiereMap().size(), "Количество премьер должно быть 1.");
+        assertTrue(premiereManager.getPremiereMap().containsKey("1"), "Премьера с ID 2 должна быть добавлена.");
     }
 
     @Test
