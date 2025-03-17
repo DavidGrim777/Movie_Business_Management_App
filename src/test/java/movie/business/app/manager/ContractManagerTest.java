@@ -1,6 +1,7 @@
-package movie.business.app;
+package movie.business.app.manager;
 
 import com.github.javafaker.Faker;
+import movie.business.app.model.Contract;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

@@ -1,6 +1,7 @@
-package movie.business.app;
+package movie.business.app.manager;
 
 import lombok.extern.slf4j.Slf4j;
+import movie.business.app.model.Contract;
 
 import java.util.ArrayList;
 import java.util.List;

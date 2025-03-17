@@ -1,5 +1,6 @@
-package movie.business.app;
+package movie.business.app.manager;
 
+import movie.business.app.model.Premiere;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

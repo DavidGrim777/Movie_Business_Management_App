@@ -1,7 +1,10 @@
-package movie.business.app;
+package movie.business.app.manager;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import movie.business.app.enums.FinanceType;
+import movie.business.app.model.FinanceRecord;
+import movie.business.app.model.Premiere;
 
 import java.io.BufferedWriter;
 import java.io.BufferedReader;

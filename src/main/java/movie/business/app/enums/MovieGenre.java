@@ -1,4 +1,4 @@
-package movie.business.app;
+package movie.business.app.enums;
 
 public enum MovieGenre {
     ACTION,

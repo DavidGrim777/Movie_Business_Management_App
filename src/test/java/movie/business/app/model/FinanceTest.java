@@ -1,5 +1,7 @@
-package movie.business.app;
+package movie.business.app.model;
 
+import movie.business.app.enums.FinanceType;
+import movie.business.app.manager.FinanceManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

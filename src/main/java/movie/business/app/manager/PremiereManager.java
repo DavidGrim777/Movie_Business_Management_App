@@ -1,7 +1,8 @@
-package movie.business.app;
+package movie.business.app.manager;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import movie.business.app.model.Premiere;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

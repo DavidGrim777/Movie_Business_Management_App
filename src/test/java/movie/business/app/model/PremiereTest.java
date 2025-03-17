@@ -1,4 +1,4 @@
-package movie.business.app;
+package movie.business.app.model;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;

@@ -1,6 +1,17 @@
-package movie.business.app;
+package movie.business.app.service;
 
 import lombok.extern.slf4j.Slf4j;
+import movie.business.app.enums.FinanceType;
+import movie.business.app.enums.MovieGenre;
+import movie.business.app.enums.MovieStatus;
+import movie.business.app.manager.ContractManager;
+import movie.business.app.manager.FinanceManager;
+import movie.business.app.manager.MovieManager;
+import movie.business.app.manager.PremiereManager;
+import movie.business.app.model.Contract;
+import movie.business.app.model.FinanceRecord;
+import movie.business.app.model.Movie;
+import movie.business.app.model.Premiere;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;

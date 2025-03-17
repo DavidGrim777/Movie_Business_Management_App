@@ -1,9 +1,11 @@
-package movie.business.app;
+package movie.business.app.model;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import movie.business.app.enums.MovieGenre;
+import movie.business.app.enums.MovieStatus;
 
 import java.time.LocalDate;
 import java.util.ArrayList;

@@ -1,5 +1,7 @@
-package movie.business.app;
+package movie.business.app.manager;
 
+import movie.business.app.enums.MovieStatus;
+import movie.business.app.model.Movie;
 import org.junit.jupiter.api.*;
 
 import java.io.*;

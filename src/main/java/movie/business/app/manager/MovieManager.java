@@ -1,9 +1,10 @@
-package movie.business.app;
+package movie.business.app.manager;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import movie.business.app.enums.MovieStatus;
+import movie.business.app.model.Movie;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -11,7 +12,7 @@ import java.util.List;
 @Getter
 @Setter
 @Slf4j
-class MovieManager {
+public class MovieManager {
     private List<Movie> movies;
     private static final String FILE_NAME = "movie.txt";
 

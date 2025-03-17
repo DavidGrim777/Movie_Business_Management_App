@@ -1,4 +1,4 @@
-package movie.business.app;
+package movie.business.app.model;
 
 import lombok.Getter;
 import lombok.Setter;

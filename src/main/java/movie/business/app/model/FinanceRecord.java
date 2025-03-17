@@ -1,8 +1,9 @@
-package movie.business.app;
+package movie.business.app.model;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import movie.business.app.enums.FinanceType;
 
 import java.io.Serial;
 import java.io.Serializable;
