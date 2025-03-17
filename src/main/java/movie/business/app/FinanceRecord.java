@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
 
@@ -11,6 +12,8 @@ import java.time.LocalDate;
 @Setter
 @ToString
 public class FinanceRecord implements Serializable {
+    @Serial//с Java 14, рекомендуется аннотировать его @Serial
+    private static final long serialVersionUID = 1L; // Версия класса для сериализации
 
     private String id;
     private FinanceType type; // тип записи доход/расход

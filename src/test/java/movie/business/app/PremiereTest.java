@@ -1,6 +1,7 @@
 package movie.business.app;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -8,10 +9,16 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -26,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class PremiereTest {
 
     private Premiere premiere;
+    private String testId = "1";  // Тестовый ID премьеры
 
     @BeforeEach
     void setUp() {
@@ -35,6 +43,59 @@ public class PremiereTest {
 
         premiere = new Premiere("1", "Titanic", date, "Cinema City", 100);
         premiere.setReviews(new ArrayList<>());
+    }
+    @AfterEach
+    void tearDown() {
+        // Удаляем тестовые файлы после каждого теста
+        deleteTestFile(testId + "_testReviews.txt");
+        deleteTestFile(testId + "_testGuests.dat");
+    }
+
+    private void deleteTestFile(String fileName) {
+        File file = new File(fileName);
+        if (file.exists()) {
+            file.delete();
+        }
+    }
+    @Test
+    void testSaveAndLoadReviews() throws IOException {
+        // Добавляем тестовые отзывы
+        List<String> reviews = Arrays.asList("Отличный фильм!", "Очень понравилось.");
+        premiere.getReviews().addAll(reviews);
+
+        // Сохраняем отзывы в файл (используем тестовый режим)
+        premiere.saveReviewsToFile(true);
+
+        // Проверяем, создался ли файл
+        Path filePath = Path.of(testId + "_testReviews.txt");
+        assertTrue(Files.exists(filePath), "Файл с отзывами не был создан!");
+
+        // Загружаем отзывы обратно
+        premiere.loadReviewsFromFile();
+
+        // Проверяем, что отзывы загружены корректно
+        assertEquals(reviews, premiere.getReviews(), "Загруженные отзывы не совпадают с исходными!");
+    }
+
+    @Test
+    void testSaveAndLoadGuests() throws IOException {
+        // Добавляем тестовых гостей
+        List<String> guests = Arrays.asList("Иван Иванов", "Мария Петрова");
+        premiere.getGuestList().addAll(guests);
+
+        // Сохраняем гостей в файл (используем тестовый режим)
+        premiere.saveGuestsToFile(true);
+
+        // Проверяем, создался ли файл
+        Path filePath = Path.of(System.getProperty("user.dir"), testId + "_testGuests.dat");
+        System.out.println("File path: " + filePath.toAbsolutePath()); // Печатаем полный путь
+        assertTrue(Files.exists(filePath), "Файл с гостями не был создан!");
+
+        // Загружаем гостей обратно
+        premiere.loadGuestsFromFile();
+
+        // Проверяем, что гости загружены корректно
+        assertEquals(guests, premiere.getGuestList(), "Загруженные гости не совпадают с исходными!");
     }
 
     @Test
@@ -322,6 +383,8 @@ public class PremiereTest {
             }, "Ошибка при возврате билетов");
         }
     }
+
+
 
     @ParameterizedTest
     @CsvSource({
