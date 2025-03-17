@@ -2,6 +2,7 @@ package movie.business.app;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDate;
@@ -9,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 @Getter
 @Setter
+@ToString
 @Slf4j
 public class Movie {
 
@@ -41,35 +43,6 @@ public class Movie {
         this.budget = budget;
         this.producer = (producer != null) ? producer : new ArrayList<>();
         this.actors = (actors != null) ? actors : new ArrayList<>();
-    }
-
-    // Геттеры для получения значений полей
-    public String getId() {
-        return id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public MovieGenre getGenre() {
-        return genre;
-    }
-
-    public LocalDate getStartDate() {
-        return startDate;
-    }
-
-    public LocalDate getEndDate() {
-        return endDate;
-    }
-
-    public MovieStatus getStatus() {
-        return status;
-    }
-
-    public double getBudget() {
-        return budget;
     }
 
     public List<String> getProducer() {
@@ -249,16 +222,5 @@ public class Movie {
         this.status = newStatus;
         System.out.println("Статус фильма успешно обновлён на: " + newStatus);
         log.info("Статус фильма успешно обновлён на: " + newStatus);
-    }
-
-    // Переопределение метода toString() для вывода информации о фильме
-    @Override
-    public String toString() {
-        return "Movie{" +
-                "id='" + id + '\'' +
-                ", title='" + title + '\'' +
-                ", genre=" + genre +
-                ", status=" + status +
-                '}';
     }
 }
