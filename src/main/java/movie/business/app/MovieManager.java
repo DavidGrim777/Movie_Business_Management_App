@@ -99,16 +99,31 @@ class MovieManager {
     }
 
     public List<Movie> loadMovie() {
+        List<Movie> loadedMovies = new ArrayList<>();
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(FILE_NAME))) {
             String movieLine;
             while ((movieLine = bufferedReader.readLine()) != null) {
+                String[] parts = movieLine.split(", ");
+                if (parts.length == 3){
+                    try {
+                        String id = parts[0].trim();
+                        String titel = parts[1].trim();
+                        MovieStatus status = MovieStatus.valueOf(parts[2].trim());
+                        loadedMovies.add(new Movie(id, titel, status));
+                    }catch (IllegalArgumentException exception){
+                        log.warn("Некорректный статус фильма: {}", movieLine);
+                    }
+                }else {
+                    log.warn("Некорректная строка в файле: {}", movieLine);
+                }
             }
         } catch (FileNotFoundException exception) {
-            log.error("File not found: {}", exception.getMessage());
+            log.error("Файл не найден: {}", exception.getMessage());
         } catch (IOException exception) {
-            log.error("I/O error while loading movies: {}", exception.getMessage());
+            log.error("Ошибка чтения файла: {}", exception.getMessage());
         }
-        return null;
+        this.movies = loadedMovies;
+        return loadedMovies;
     }
 
     public List<Movie> getMovies() {
