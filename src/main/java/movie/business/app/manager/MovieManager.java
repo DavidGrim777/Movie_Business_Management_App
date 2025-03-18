@@ -3,6 +3,7 @@ package movie.business.app.manager;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import movie.business.app.enums.MovieGenre;
 import movie.business.app.enums.MovieStatus;
 import movie.business.app.model.Movie;
 
@@ -51,7 +52,7 @@ public class MovieManager {
             log.info("Фильм удалён: {}", movieToRemove.getTitle());
         } else {
             System.out.println("Фильм с ID " + movieId + " не найден.");
-            log.warn("Фильм с ID {} не найден.", movieId);
+            log.warn("Фильм с ID {} для удаления не найден.", movieId);
 
         }
     }
@@ -72,7 +73,7 @@ public class MovieManager {
             }
         }
         System.out.println("Фильм с ID " + updatedMovie.getId() + " не найден.");
-        log.warn("Фильм с ID {} не найден.", updatedMovie.getId());
+        log.warn("Фильм с ID {} для обновления не найден.", updatedMovie.getId());
     }
 
     // Метод выводит в консоль все фильмы из списка
@@ -81,15 +82,20 @@ public class MovieManager {
             System.out.println("Список фильмов пуст.");
         } else {
             for (Movie movie : movies) {
-                System.out.println(movie);
+                System.out.println("ID фильма: " + movie.getId());
+                System.out.println("Название: " + movie.getTitle());
+                System.out.println("Статус: " + movie.getStatus());
+                System.out.println("Жанр: " + movie.getGenre());
+
+                System.out.println("---------------------------------------");
             }
         }
     }
 
     public void saveMovies() {
-        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(FILE_NAME, true))) {
+        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(FILE_NAME, false))) {// false - перезапись
             for (Movie movie : movies) {
-                bufferedWriter.write(movie.getId() + ", " + movie.getTitle() + ", " + movie.getStatus());
+                bufferedWriter.write(movie.getId() + ", " + movie.getTitle() + ", " + movie.getStatus() +", " + movie.getGenre());
                 bufferedWriter.newLine();
             }
             System.out.println("Фильмы сохранены в файл.");
@@ -99,32 +105,36 @@ public class MovieManager {
         }
     }
 
-    public List<Movie> loadMovie() {
-        List<Movie> loadedMovies = new ArrayList<>();
+    public void loadMovie() {
+        movies.clear(); // Очищаем список перед загрузкой
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(FILE_NAME))) {
             String movieLine;
+            int lineNumber = 0;
             while ((movieLine = bufferedReader.readLine()) != null) {
+                lineNumber++;
                 String[] parts = movieLine.split(", ");
-                if (parts.length == 3){
+                if (parts.length >= 4){ // Если в строке минимум 4 элемента
                     try {
                         String id = parts[0].trim();
-                        String titel = parts[1].trim();
+                        String title = parts[1].trim();
                         MovieStatus status = MovieStatus.valueOf(parts[2].trim());
-                        loadedMovies.add(new Movie(id, titel, status));
+                        MovieGenre genre = MovieGenre.valueOf(parts[3].trim()); // Разбираем жанр
+
+                        Movie movie = new Movie(id, title, status, genre); // Вызываем правильный конструктор
+                        movies.add(movie);
                     }catch (IllegalArgumentException exception){
-                        log.warn("Некорректный статус фильма: {}", movieLine);
+                        log.warn("Некорректный статус фильма: {} - {}", movieLine, lineNumber);
                     }
                 }else {
-                    log.warn("Некорректная строка в файле: {}", movieLine);
+                    log.warn("Некорректная строка в файле: {} - {}", movieLine, lineNumber);
                 }
             }
+            System.out.println("Фильмы успешно загружены.");
         } catch (FileNotFoundException exception) {
             log.error("Файл не найден: {}", exception.getMessage());
         } catch (IOException exception) {
             log.error("Ошибка чтения файла: {}", exception.getMessage());
         }
-        this.movies = loadedMovies;
-        return loadedMovies;
     }
 
     public List<Movie> getMovies() {

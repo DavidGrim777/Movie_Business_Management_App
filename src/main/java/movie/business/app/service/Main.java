@@ -68,15 +68,7 @@ public class Main {
 
             switch (choice) {
                 case 1:
-                    String movieId;
-                    do {
-                        System.out.print("Введите ID фильма: ");
-                        movieId = scanner.nextLine().trim();
-                        if (movieId.isEmpty()) {
-                            System.out.println("Ошибка: ID фильма не может быть пустым.");
-                        }
-                    } while (movieId.isEmpty());
-
+                    String movieId = UUID.randomUUID().toString().substring(0, 5); // Генерация уникального ID фильма
                     String title;
                     do {
                         System.out.print("Введите название фильма: ");
@@ -108,14 +100,11 @@ public class Main {
                         }
                     }
 
-                    Movie movie = new Movie(movieId, title, status);
+                    Movie movie = new Movie(movieId, title, status, genre);
                     movieManager.addMovie(movie);
                     System.out.println("Фильм добавлен: " + title + " genre: " + genre);
-
-                    String movieData = movieId + ", " + title + ", " + status + ", " + genre;
                     movieManager.saveMovies();
                     break;
-
 
                 case 2:
                     System.out.print("Введите ID фильма для удаления: ");
@@ -125,6 +114,7 @@ public class Main {
 
                 case 3:
                     System.out.println("Список фильмов: ");
+                    movieManager.loadMovie();  // Загружаем данные из файла
                     movieManager.printAllMovies();
                     break;
 
@@ -368,7 +358,7 @@ public class Main {
 
                         try {
                             // Возвращаем билеты для найденной премьеры
-                            premiereForReturn.returnTickets(ticketsToReturn, premiereForReturn.getTicketSold(), true);
+                            premiereForReturn.returnTickets(ticketsToReturn, premiereForReturn.getTicketSold());
                             System.out.println("Возвращено билетов на сумму: " + totalRefund);
 
                             // Запись о возврате в финансовый менеджер
@@ -411,7 +401,7 @@ public class Main {
                         premiereForReview.saveReviewsToFile(false);
 
                         // Загружаем и выводим все отзывы
-                        premiereForReview.loadReviewsFromFile();
+                        premiereForReview.loadReviewsFromFile(true);
                         List<String> reviews = premiereForReview.getReviews();
 
                         System.out.println("Отзыв добавлен для премьеры " + premiereForReview.getMovieTitle());
@@ -435,7 +425,7 @@ public class Main {
 
                     if (premiereToShowReviews != null) {
                         // Загружаем отзывы из файла перед отображением
-                        premiereToShowReviews.loadReviewsFromFile();
+                        premiereToShowReviews.loadReviewsFromFile(true);
 
                         List<String> reviews = premiereToShowReviews.getReviews();
 
