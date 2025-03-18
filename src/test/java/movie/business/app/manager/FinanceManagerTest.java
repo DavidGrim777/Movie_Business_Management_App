@@ -212,12 +212,6 @@ public class FinanceManagerTest {
 
     @Test
     void testLoadFinanceRecordsFromFile() {
-        // Arrange: подготовим тестовый файл
-        String testFilePath = "test_finance_records.csv";
-        // Запишем данные в файл, например:
-        // "1, INCOME, 1000.0, Salary, 2025-02-10"
-        // Прочитаем файл и загрузим данные
-
         // Act
         financeManager.loadFinanceRecordsFromFile();
 
@@ -276,5 +270,4 @@ public class FinanceManagerTest {
         assertTrue(file.exists(), "Файл отчета должен существовать.");
         assertTrue(file.length() > 0, "Файл отчета не должен быть пустым.");
     }
-
 }

@@ -148,22 +148,49 @@ public class Main {
                 case 7:
                     System.out.print("Введите ID премьеры: ");
                     String premiereId = scanner.nextLine();
+                    // Проверка, существует ли уже премьера с таким ID
+                    if (premiereManager.findPremiereById(premiereId) != null) {
+                        System.out.println("Ошибка: Премьера с таким ID уже существует.");
+                        break; // Прерываем выполнение, если премьера с таким ID уже есть
+                    }
+
                     System.out.print("Введите название фильма для премьеры: ");
                     String premiereTitle = scanner.nextLine();
-                    System.out.print("Введите количество билетов: ");
-                    int ticketCount = scanner.nextInt();
-                    scanner.nextLine();  // Очистка буфера после nextInt()
-                    try {
+
+                    // Получаем количество билетов через метод
+                    int ticketCount = 0;
+                    while (ticketCount <= 0) {
+                        System.out.print("Введите количество билетов: ");
+                        if (scanner.hasNextInt()) {
+                            ticketCount = scanner.nextInt();
+                            scanner.nextLine();  // Очистка буфера после nextInt()
+                            if (ticketCount <= 0) {
+                                System.out.println("Ошибка: Количество билетов должно быть положительным числом.");
+                            }
+                        } else {
+                            System.out.println("Ошибка: Введите корректное количество билетов.");
+                            scanner.nextLine(); // Считываем некорректный ввод
+                        }
+                    }
+                    // Получаем дату премьеры через метод
+                    ZonedDateTime premiereDate = null;
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm z");
+                    while (premiereDate == null) {
                         System.out.print("Введите дату премьеры (dd.MM.yyyy HH:mm z) (например: 10.11.2025 14:30 GMT): ");
                         String dateInput = scanner.nextLine();
-                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm z");
-                        ZonedDateTime premiereDate = ZonedDateTime.parse(dateInput, formatter); // Парсим дату с учётом зоны
-                        System.out.print("Введите место премьеры: ");
-                        String premierePlace = scanner.nextLine();
-                        premiereManager.addPremiere(new Premiere(premiereId, premiereTitle, premiereDate, premierePlace, ticketCount));
-                    } catch (Exception exception) {
-                        System.out.println("Ошибка: Неверный формат даты.");
+                        try {
+                            premiereDate = ZonedDateTime.parse(dateInput, formatter); // Парсим дату с учётом зоны
+                        } catch (Exception exception) {
+                            System.out.println("Ошибка: Неверный формат даты. Попробуйте снова.");
+                        }
                     }
+
+                    // Получаем место премьеры
+                    System.out.print("Введите место премьеры: ");
+                    String premierePlace = scanner.nextLine();
+
+                    // Добавляем премьеру
+                    premiereManager.addPremiere(new Premiere(premiereId, premiereTitle, premiereDate, premierePlace, ticketCount));
                     break;
 
                 case 8: // Добавление гостя на премьеру
@@ -262,16 +289,19 @@ public class Main {
                     }
                     // Для даты: если она не введена, можно использовать текущую дату
                     LocalDate date = null;
-                    System.out.print("Введите дату (в формате YYYY-MM-DD): ");
-                    String dateInput = scanner.nextLine().trim();
-                    if (!dateInput.isEmpty()) {
-                        try {
-                            date = LocalDate.parse(dateInput);
-                        } catch (DateTimeParseException e) {
-                            System.out.println("Ошибка: Неверный формат даты.");
+                    while (date == null) { // Цикл для перезапроса даты
+                        System.out.print("Введите дату (в формате YYYY-MM-DD): ");
+                        String dateInput = scanner.nextLine().trim();
+                        if (!dateInput.isEmpty()) {
+                            try {
+                                date = LocalDate.parse(dateInput);
+                            } catch (DateTimeParseException e) {
+                                System.out.println("Ошибка: Неверный формат даты. Попробуйте еще раз.");
+                            }
+                        } else {
+                            System.out.println("Дата не может быть пустой. Попробуйте снова.");
                         }
-                    }
-                    if (date != null) {
+
                         financeManager.addFinanceRecord(new FinanceRecord(UUID.randomUUID().toString().substring(0, 5),
                                 type, amount, description, date));
                         System.out.println("Финансовая запись успешно добавлена.");
@@ -291,7 +321,7 @@ public class Main {
                         // Вызываем общий метод, который уже делает всё, что нужно
                         financeManager.addPremiereBudget(premiereToCheck, budgetToAdd);
 
-                            financeManager.generateFinanceReport(true);
+                        financeManager.generateFinanceReport(true);
                     } else {
                         System.out.println("Премьера с таким ID не найдена.");
                     }

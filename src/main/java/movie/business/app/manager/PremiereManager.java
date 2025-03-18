@@ -76,7 +76,7 @@ public class PremiereManager {
     public Premiere findPremiereById(String id) {
         Premiere premiere = premiereMap.get(id);
         if (premiere == null) {
-            log.warn("Премьера с ID {} не найдена.", id);
+            log.info("Премьера с ID {} не найдена.", id);
             System.out.println("Премьера с ID " + id + " не найдена.");
         } else {
             System.out.println("Премьера найдена по ID: " + id);

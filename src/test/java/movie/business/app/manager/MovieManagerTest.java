@@ -1,5 +1,6 @@
 package movie.business.app.manager;
 
+import movie.business.app.enums.MovieGenre;
 import movie.business.app.enums.MovieStatus;
 import movie.business.app.model.Movie;
 import org.junit.jupiter.api.*;
@@ -34,7 +35,7 @@ class MovieManagerTest {
     @Test
     void shouldAddMovie() {
         // Тест: добавление фильма в список
-        Movie movie = new Movie("1", "Inception", MovieStatus.PLANNED);
+        Movie movie = new Movie("1", "Inception", MovieStatus.PLANNED, MovieGenre.DRAMA);
         movieManager.addMovie(movie);
         List<Movie> movies = movieManager.getMovies();
 
@@ -57,7 +58,7 @@ class MovieManagerTest {
     @Test
     void shouldRemoveMovie() {
         // Тест: удаление фильма по ID
-        Movie movie = new Movie("1", "Matrix", MovieStatus.IN_PROGRESS);
+        Movie movie = new Movie("1", "Matrix", MovieStatus.IN_PROGRESS, MovieGenre.DRAMA);
         movieManager.addMovie(movie);
 
         movieManager.removeMovie("1");
@@ -80,7 +81,7 @@ class MovieManagerTest {
     @Test
     void shouldNotRemoveMovieWithEmptyId() {
         // Тест: нельзя удалить фильм, если ID пустой
-        Movie movie = new Movie("1", "Matrix", MovieStatus.IN_PROGRESS);
+        Movie movie = new Movie("1", "Matrix", MovieStatus.IN_PROGRESS, MovieGenre.DRAMA);
         movieManager.addMovie(movie);
 
         movieManager.removeMovie(" ");
@@ -93,10 +94,10 @@ class MovieManagerTest {
     @Test
     void shouldUpdateMovie() {
         // Тест: обновление фильма
-        Movie movie = new Movie("1", "Titanic", MovieStatus.PLANNED);
+        Movie movie = new Movie("1", "Titanic", MovieStatus.PLANNED, MovieGenre.DRAMA);
         movieManager.addMovie(movie);
 
-        Movie updatedMovie = new Movie("1", "Titanic (Updated)", MovieStatus.IN_PROGRESS);
+        Movie updatedMovie = new Movie("1", "Titanic (Updated)", MovieStatus.IN_PROGRESS, MovieGenre.DRAMA);
         movieManager.updateMovie(updatedMovie);
 
         List<Movie> movies = movieManager.getMovies();
@@ -108,7 +109,7 @@ class MovieManagerTest {
     @Test
     void shouldNotUpdateNonExistentMovie() {
         // Тест: нельзя обновить несуществующий фильм
-        Movie updatedMovie = new Movie("999", "Non-existent", MovieStatus.COMPLETED);
+        Movie updatedMovie = new Movie("999", "Non-existent", MovieStatus.COMPLETED, MovieGenre.DRAMA);
         movieManager.updateMovie(updatedMovie);
 
         List<Movie> movies = movieManager.getMovies();
