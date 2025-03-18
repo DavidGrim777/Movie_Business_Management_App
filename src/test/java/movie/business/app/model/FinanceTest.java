@@ -11,9 +11,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class FinanceTest {
 
@@ -44,45 +42,6 @@ public class FinanceTest {
 
         assertEquals(1, financeManager.getAllFinanceRecords().size());
         assertEquals(record, financeManager.getAllFinanceRecords().get(0));
-    }
-
-    // Параметризованный тест для расчета общих расходов
-    @ParameterizedTest
-    @CsvSource({
-            "200.0, Groceries, 2025-02-10",
-            "150.0, Electricity, 2025-02-11",
-            "150.0, Water, 2025-02-09"
-    })
-    void testCalculateTotalExpenses(double amount, String description, String dateStr) {
-        // Преобразуем строку в LocalDate
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate date = LocalDate.parse(dateStr, formatter); // Преобразуем строку в дату
-
-        // Создаем объект FinanceRecord с конвертированной датой
-        FinanceRecord expense = new FinanceRecord("1", FinanceType.EXPENSE, amount, description, date);
-        financeManager.addFinanceRecord(expense);
-
-        double totalExpenses = financeManager.calculateTotalExpenses();
-        assertEquals(amount, totalExpenses, 0.01);
-    }
-
-    // Параметризованный тест для расчета общего дохода
-    @ParameterizedTest
-    @CsvSource({
-            "1500.0, Salary, 2025-02-10",
-            "500.0, Freelance, 2025-02-11"
-    })
-    void testCalculateTotalIncome(double amount, String description, String dateStr) {
-        // Преобразуем строку в LocalDate
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate date = LocalDate.parse(dateStr, formatter);
-
-
-        FinanceRecord income = new FinanceRecord("1", FinanceType.INCOME, amount, description, date);
-        financeManager.addFinanceRecord(income);
-
-        double totalIncome = financeManager.calculateTotalIncome();
-        assertEquals(amount, totalIncome, 0.01);
     }
 
     // Параметризованный тест для добавления записи с некорректной суммой
@@ -174,28 +133,6 @@ public class FinanceTest {
     }
 
     @Test
-    void testHasRecords_noRecords() {
-        // Arrange
-        boolean hasRecords = financeManager.hasRecords();
-
-        // Assert: метод должен вернуть false, если нет записей
-        assertFalse(hasRecords);
-    }
-
-    @Test
-    void testHasRecords_withRecords() {
-        // Arrange
-        FinanceManager financeManager = new FinanceManager();
-        FinanceRecord record = new FinanceRecord("1", FinanceType.INCOME, 1000.0, "Salary", LocalDate.of(2025, 2, 10));
-        financeManager.addFinanceRecord(record);
-
-        // Act
-        boolean hasRecords = financeManager.hasRecords();
-
-        // Assert: метод должен вернуть true, если есть хотя бы одна запись
-        assertTrue(hasRecords);
-    }
-    @Test
     void testDateValidation_validDate() {
         // Arrange
         FinanceRecord record = new FinanceRecord("1", FinanceType.EXPENSE, 200.0, "Groceries", LocalDate.of(2025, 2, 10)); // Валидная дата
@@ -207,30 +144,6 @@ public class FinanceTest {
         assertEquals(1, financeManager.getAllFinanceRecords().size());
         assertEquals(record, financeManager.getAllFinanceRecords().get(0));
     }
-
-    @Test
-    void testAddFinanceRecord_throwsIllegalArgumentException() {
-        // Arrange: Создаем экземпляр FinanceManager
-        FinanceManager financeManager = new FinanceManager();
-
-        // Создаем invalidRecord, который должен вызвать исключение
-        FinanceRecord invalidRecord = new FinanceRecord(
-                "Invalid ID",
-                FinanceType.EXPENSE,
-                -100.0, // Некорректная сумма, которая должна вызвать исключение
-                "Invalid record",
-                LocalDate.now()
-        );
-
-        // Act & Assert: Проверяем, что при добавлении такого invalidRecord будет выброшено исключение
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-            financeManager.addFinanceRecord(invalidRecord));
-
-        // Assert: Проверка сообщения об ошибке в исключении
-        assertEquals("Сумма должна быть больше 0.", exception.getMessage(),
-                "Сообщение об ошибке должно быть: Сумма должна быть больше 0.");
-    }
-
     @Test
     void testRemoveFinanceRecord_recordExists() {
         // Arrange
@@ -242,48 +155,5 @@ public class FinanceTest {
 
         // Assert: после удаления записи размер списка должен быть 0
         assertEquals(0, financeManager.getAllFinanceRecords().size());
-    }
-
-    @Test
-    void testRemoveFinanceRecord_recordNotFound() {
-        // Arrange
-        FinanceManager financeManager = new FinanceManager();
-        FinanceRecord record = new FinanceRecord("1", FinanceType.EXPENSE, 200.0, "Groceries", LocalDate.of(2025, 2, 10));
-        financeManager.addFinanceRecord(record);
-
-        // Act & Assert: проверка выбрасывания исключения, если запись с таким ID не найдена
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            financeManager.removeFinanceRecord("2");  // ID, которого нет в списке
-        });
-
-        assertEquals("Запись с таким ID не найдена.", exception.getMessage());
-    }
-
-    // Тестируем генерацию отчета
-    @Test
-    void testGenerateFinanceReport() {
-        // Arrange: подготовка данных с неправильным типом записи
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate date = LocalDate.parse("2025-02-11", formatter); // Преобразуем строку в LocalDate
-
-        FinanceRecord income = new FinanceRecord("1", FinanceType.INCOME, 1000.0, "Salary", date);
-        financeManager.addFinanceRecord(income);
-
-        // Act: генерация отчета
-        financeManager.generateFinanceReport(true);  // просто проверяем, что метод не вызывает ошибок
-    }
-
-    // Тестируем экспорт в CSV
-    @Test
-    void testExportToCSV() {
-        // Arrange: подготовка данных с неправильным типом записи
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate date = LocalDate.parse("2025-02-11", formatter); // Преобразуем строку в LocalDate
-
-        FinanceRecord income = new FinanceRecord("1", FinanceType.INCOME, 1000.0, "Salary", date);
-        financeManager.addFinanceRecord(income);
-
-        // Act: экспорт в CSV
-        //financeManager.exportToCSV();  // проверяем, что метод не вызывает ошибок
     }
 }

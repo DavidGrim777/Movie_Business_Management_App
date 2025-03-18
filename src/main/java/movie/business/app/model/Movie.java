@@ -27,10 +27,12 @@ public class Movie {
     private List<String> actors;              // Список актёров фильма
 
     // Конструктор с минимальным набором данных для создания фильма
-    public Movie(String movieId, String title, MovieStatus movieStatus) {
+    public Movie(String movieId, String title, MovieStatus movieStatus, MovieGenre genre) {
         this.id = movieId;
         this.title = title;
         this.status = movieStatus;
+        this.genre = genre;
+
     }
     // Конструктор, инициализирующий все поля фильма
     public Movie(String id, String title, MovieGenre genre, LocalDate startDate, LocalDate endDate,

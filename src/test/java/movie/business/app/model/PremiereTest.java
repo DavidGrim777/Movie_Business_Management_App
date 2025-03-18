@@ -9,10 +9,10 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class PremiereTest {
 
     private Premiere premiere;
-    private String testId = "1";  // Тестовый ID премьеры
+    private final String testId = "1";  // Тестовый ID премьеры
 
     @BeforeEach
     void setUp() {
@@ -52,13 +52,18 @@ public class PremiereTest {
     }
 
     private void deleteTestFile(String fileName) {
-        File file = new File(fileName);
-        if (file.exists()) {
-            file.delete();
+        Path filePath = Paths.get(fileName);
+        try {
+            Files.deleteIfExists(filePath);
+            System.out.println("Файл " + fileName + " успешно удалён.");
+        } catch (IOException e) {
+            System.out.println("Ошибка при удалении файла: " + fileName + " - " + e.getMessage());
         }
     }
+
     @Test
     void testSaveAndLoadReviews() throws IOException {
+        Files.deleteIfExists(Path.of(testId + "_testReviews.txt"));
         // Добавляем тестовые отзывы
         List<String> reviews = Arrays.asList("Отличный фильм!", "Очень понравилось.");
         premiere.getReviews().addAll(reviews);
@@ -69,16 +74,16 @@ public class PremiereTest {
         // Проверяем, создался ли файл
         Path filePath = Path.of(testId + "_testReviews.txt");
         assertTrue(Files.exists(filePath), "Файл с отзывами не был создан!");
-
+        System.out.println("File path for loading: " + filePath);
         // Загружаем отзывы обратно
-        premiere.loadReviewsFromFile();
+        premiere.loadReviewsFromFile(true);
 
         // Проверяем, что отзывы загружены корректно
         assertEquals(reviews, premiere.getReviews(), "Загруженные отзывы не совпадают с исходными!");
     }
 
     @Test
-    void testSaveAndLoadGuests() throws IOException {
+    void testSaveAndLoadGuests(){
         // Добавляем тестовых гостей
         List<String> guests = Arrays.asList("Иван Иванов", "Мария Петрова");
         premiere.getGuestList().addAll(guests);
@@ -96,6 +101,8 @@ public class PremiereTest {
 
         // Проверяем, что гости загружены корректно
         assertEquals(guests, premiere.getGuestList(), "Загруженные гости не совпадают с исходными!");
+        assertDoesNotThrow(() -> premiere.saveGuestsToFile(true));
+        assertDoesNotThrow(() -> premiere.loadGuestsFromFile());
     }
 
     @Test
@@ -234,9 +241,9 @@ public class PremiereTest {
         assertEquals(150, premiere.getTicketCount(), "Количество билетов должно быть 150");
 
         // Act: попытка установить отрицательное количество билетов
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            premiere.setTicketCount(-1);
-        });
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+            premiere.setTicketCount(-1));
+
 
         // Assert: проверка, что выбрасывается исключение с ожидаемым сообщением
         assertEquals("Количество билетов не может быть отрицательным.", exception.getMessage());
@@ -274,7 +281,7 @@ public class PremiereTest {
         premiere.sellTickets(50); // Продаем 50 билетов
         // Пример с возвратом больше билетов, чем продано:
         try {
-            premiere.returnTickets(30, 10, true); // Пример с количеством больше, чем продано
+            premiere.returnTickets(30, 10); // Пример с количеством больше, чем продано
             fail("Ожидалась ошибка: Невозможно вернуть больше билетов, чем было продано");
         } catch (IllegalArgumentException e) {
             assertEquals("Ошибка при возврате билетов: Невозможно вернуть больше билетов, чем было продано.", e.getMessage());
@@ -282,7 +289,7 @@ public class PremiereTest {
 
         // Пример с возвратом отрицательного количества билетов:
         try {
-            premiere.returnTickets(-5, 10, true); // Пример с отрицательным количеством
+            premiere.returnTickets(-5, 10); // Пример с отрицательным количеством
             fail("Ожидалась ошибка: количество билетов должно быть положительным");
         } catch (IllegalArgumentException e) {
             assertEquals("Ошибка при возврате билетов: количество билетов должно быть положительным.", e.getMessage());
@@ -369,7 +376,7 @@ public class PremiereTest {
 
         if (shouldThrowException) {
             // Проверяем успешный возврат билетов
-            premiere.returnTickets(ticketsToReturn, premiere.getTicketSold(), true);
+            premiere.returnTickets(ticketsToReturn, premiere.getTicketSold());
 
             // Проверяем, что количество проданных билетов уменьшилось на количество возвращенных
             assertEquals(expectedSold, premiere.getTicketSold(), "Количество проданных билетов должно уменьшиться");
@@ -378,13 +385,10 @@ public class PremiereTest {
             assertEquals(expectedAvailable, premiere.getTicketCount(), "Количество доступных билетов должно увеличиться");
         } else {
             // Проверяем, что выбрасывается исключение для неправильных значений
-            assertThrows(IllegalArgumentException.class, () -> {
-                premiere.returnTickets(ticketsToReturn, premiere.getTicketSold(), true);
-            }, "Ошибка при возврате билетов");
+            assertThrows(IllegalArgumentException.class, () ->
+                premiere.returnTickets(ticketsToReturn, premiere.getTicketSold()), "Ошибка при возврате билетов");
         }
     }
-
-
 
     @ParameterizedTest
     @CsvSource({
@@ -408,9 +412,9 @@ public class PremiereTest {
             assertEquals(100.0 + budget, premiere.getBudget(), "Бюджет должен быть увеличен на: " + budget);
         } else {
             // Act & Assert для нулевого или отрицательного бюджета (должно быть исключение)
-            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-                premiere.addBudget(budget);
-            });
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                premiere.addBudget(budget));
+
             assertEquals("Бюджет не может быть отрицательным или нулевым.", exception.getMessage());
         }
     }
