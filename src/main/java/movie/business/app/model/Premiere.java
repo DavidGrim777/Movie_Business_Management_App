@@ -149,7 +149,7 @@ public class Premiere implements Serializable {
     }
 
     /// Метод для возврата билетов
-    public void returnTickets(int ticketsToReturn, int ticketsSold, boolean isRefundable) {
+    public void returnTickets(int ticketsToReturn, int ticketsSold) {
         if (ticketsToReturn <= 0) {
             throw new IllegalArgumentException("Ошибка при возврате билетов: количество билетов должно быть положительным.");
         }
@@ -227,26 +227,36 @@ public class Premiere implements Serializable {
     }
 
     // Метод для загрузки отзывов из текстового файла
-    public void loadReviewsFromFile() {
-        String fileName = id + "_reviews.txt"; // Используем ID премьеры для имени файла
-        Path filePath = Paths.get(fileName);
-        if (!Files.exists(filePath)) {
-            System.out.println("Файл с отзывами не найден для премьеры " + id);
-            return;
-        }
-
-        try {
-            reviews = Files.readAllLines(filePath); // Читаем все строки в список
-            System.out.println("Отзывы для премьеры " + id + " загружены из файла: " + fileName);
-        } catch (IOException e) {
-            System.out.println("Ошибка при загрузке отзывов для премьеры " + id + ": " + e.getMessage());
-            log.warn("Ошибка при загрузке отзывов из файла для премьеры {}: {}", id, e.getMessage());
+    public void loadReviewsFromFile(boolean testMode) {
+        if (!testMode) {
+            String fileName = id + "_reviews.txt"; // Используем ID премьеры для имени файла
+            Path filePath = Paths.get(fileName);
+            try {
+                reviews = Files.readAllLines(filePath); // Читаем все строки в список
+                System.out.println("Отзывы для премьеры " + id + " загружены из файла: " + fileName);
+            } catch (IOException e) {
+                System.out.println("Ошибка при загрузке отзывов для премьеры " + id + ": " + e.getMessage());
+                log.warn("Ошибка при загрузке отзывов из файла для премьеры {}: {}", id, e.getMessage());
+            }
+            if (!Files.exists(filePath)) {
+                System.out.println("Файл с отзывами не найден для премьеры " + id);
+            }
+        } else {
+            String fileName = id + "_testReviews.txt"; // Используем ID премьеры для имени файла
+            Path filePath = Paths.get(fileName);
+            try {
+                reviews = Files.readAllLines(filePath); // Читаем все строки в список
+                System.out.println("Отзывы для премьеры " + id + " загружены из файла: " + fileName);
+            } catch (IOException e) {
+                System.out.println("Ошибка при загрузке отзывов для премьеры " + id + ": " + e.getMessage());
+                log.warn("Ошибка при загрузке отзывов из тестового файла для премьеры {}: {}", id, e.getMessage());
+            }
         }
     }
 
     // Метод для сохранения гостей в файл
-    public void saveGuestsToFile(boolean testModus) {
-        if (!testModus) {
+    public void saveGuestsToFile(boolean testMode) {
+        if (!testMode) {
             String fileName = id + "_guests.dat"; // Используем ID премьеры для имени файла
             try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(Paths.get(fileName)))) {
                 oos.writeObject(guestList);

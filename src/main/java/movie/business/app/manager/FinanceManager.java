@@ -29,10 +29,12 @@ public class FinanceManager {
         this.isTestMode = false;  // По умолчанию не в тестовом режиме
         loadFinanceRecordsFromFile();  // Загружаем данные из файла при создании объекта
     }
+
     // Установить флаг, чтобы знать, когда очистить данные в тестах
     public void setTestMode(boolean isTestMode) {
         this.isTestMode = isTestMode;
     }
+
     // Метод для очистки данных (только если мы в тестовом режиме)
     public void clearData() {
         if (isTestMode) {
@@ -143,7 +145,7 @@ public class FinanceManager {
 
     // Метод для добавления бюджета для премьеры
     public void addPremiereBudget(Premiere premiere, double budgetToAdd) {
-        if (budgetToAdd <= 0){
+        if (budgetToAdd <= 0) {
             log.warn("Ошибка: бюджет должен быть больше 0.");
             System.out.println("Ошибка: бюджет должен быть больше 0.");
             return;
@@ -173,8 +175,9 @@ public class FinanceManager {
             writer.newLine();  // Переход на новую строку
 
             if (printToConsole) {
-            // Выводим на экран и записываем в файл
-            System.out.println("Финансовый отчет:");}
+                // Выводим на экран и записываем в файл
+                System.out.println("Финансовый отчет:");
+            }
             // Добавляем информацию о продаже билетов, возвратах и бюджете премьеры
             double ticketSales = getTicketSales();
             double ticketRefunds = getTicketRefunds();
