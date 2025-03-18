@@ -119,7 +119,7 @@ class MovieManagerTest {
     @Test
     void shouldLoadMoviesFromFile() {
         // Тест: загрузка фильмов из файла
-        writeToFile("1, Interstellar, PLANNED, ACTION\n" +
+        writeToFile("1, Interstellar, PLANNED, SCI_FI\n" +
                 "2, Joker, IN_PROGRESS, DRAMA");
 
         movieManager.loadMovie();
@@ -136,6 +136,8 @@ class MovieManagerTest {
         assertEquals(MovieStatus.IN_PROGRESS, movies.get(1).getStatus());
         assertEquals(MovieGenre.DRAMA, movies.get(1).getGenre()); // Проверяем жанр
     }
+
+
     @Test
     void shouldHandleInvalidMovieDataGracefully() {
         // Тест: обработка некорректных данных в файле
