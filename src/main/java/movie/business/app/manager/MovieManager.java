@@ -86,7 +86,7 @@ public class MovieManager {
         }
     }
 
-    public void saveMovies() {
+    public void saveMovies(String movieData) {
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(FILE_NAME, true))) {
             for (Movie movie : movies) {
                 bufferedWriter.write(movie.getId() + ", " + movie.getTitle() + ", " + movie.getStatus());

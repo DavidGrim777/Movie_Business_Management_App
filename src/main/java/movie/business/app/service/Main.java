@@ -110,10 +110,10 @@ public class Main {
 
                     Movie movie = new Movie(movieId, title, status);
                     movieManager.addMovie(movie);
-                    System.out.println("Фильм добавлен: " + title + " genre: " + genre);
+                    System.out.println("Фильм добавлен: " + title + ", " + " genre: " + genre);
 
                     String movieData = movieId + ", " + title + ", " + status + ", " + genre;
-                    movieManager.saveMovies();
+                    movieManager.saveMovies(movieData);
                     break;
 
 
