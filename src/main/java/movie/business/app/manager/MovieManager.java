@@ -3,6 +3,7 @@ package movie.business.app.manager;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import movie.business.app.enums.MovieGenre;
 import movie.business.app.enums.MovieStatus;
 import movie.business.app.model.Movie;
 
@@ -103,14 +104,19 @@ public class MovieManager {
         List<Movie> loadedMovies = new ArrayList<>();
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(FILE_NAME))) {
             String movieLine;
+            int lineNumber = 0;
             while ((movieLine = bufferedReader.readLine()) != null) {
+                lineNumber++;
                 String[] parts = movieLine.split(", ");
-                if (parts.length == 3){
+                if (parts.length >= 4){
                     try {
                         String id = parts[0].trim();
                         String titel = parts[1].trim();
                         MovieStatus status = MovieStatus.valueOf(parts[2].trim());
-                        loadedMovies.add(new Movie(id, titel, status));
+                        MovieGenre genre = MovieGenre.valueOf(parts[3].trim());
+
+                        Movie movie = new Movie(id, titel, status, genre);
+                        movies.add(movie);
                     }catch (IllegalArgumentException exception){
                         log.warn("Некорректный статус фильма: {}", movieLine);
                     }
