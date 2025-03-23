@@ -119,31 +119,39 @@ class MovieManagerTest {
     @Test
     void shouldLoadMoviesFromFile() {
         // Тест: загрузка фильмов из файла
-        writeToFile("1, Interstellar, PLANNED\n2, Joker, IN_PROGRESS");
+        writeToFile("1, Interstellar, PLANNED, SCI_FI\n" +
+                "2, Joker, IN_PROGRESS, DRAMA");
 
         movieManager.loadMovie();
         List<Movie> movies = movieManager.getMovies();
 
         // Проверяем, что фильмы корректно загрузились
         assertEquals(2, movies.size());
+
         assertEquals("Interstellar", movies.get(0).getTitle());
         assertEquals(MovieStatus.PLANNED, movies.get(0).getStatus());
+        assertEquals(MovieGenre.SCI_FI, movies.get(0).getGenre()); // Проверяем жанр
 
         assertEquals("Joker", movies.get(1).getTitle());
         assertEquals(MovieStatus.IN_PROGRESS, movies.get(1).getStatus());
+        assertEquals(MovieGenre.DRAMA, movies.get(1).getGenre()); // Проверяем жанр
     }
+
 
     @Test
     void shouldHandleInvalidMovieDataGracefully() {
         // Тест: обработка некорректных данных в файле
-        writeToFile("1, Good Movie, PLANNED\nINVALID DATA\n3, Bad Movie, UNKNOWN");
+        writeToFile("1, Good Movie, PLANNED, ACTION\n" +  // Корректный фильм
+                "INVALID DATA\n" +                     // Полностью некорректная строка
+                "3, Bad Movie, UNKNOWN, COMEDY");      // Некорректный статус
 
         movieManager.loadMovie();
         List<Movie> movies = movieManager.getMovies();
 
-        // Только один корректный фильм должен загрузиться
+        // Ожидаем, что загрузится только один корректный фильм
         assertEquals(1, movies.size(), "Только один корректный фильм должен загрузиться");
         assertEquals("Good Movie", movies.get(0).getTitle());
+        assertEquals(MovieGenre.ACTION, movies.get(0).getGenre()); // Проверка жанра
     }
 
     @Test
