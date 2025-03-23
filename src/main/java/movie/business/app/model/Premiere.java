@@ -149,7 +149,7 @@ public class Premiere implements Serializable {
     }
 
     /// Метод для возврата билетов
-    public void returnTickets(int ticketsToReturn, int ticketsSold) {
+    public void returnTickets(int ticketsToReturn, int ticketsSold, boolean b) {
         if (ticketsToReturn <= 0) {
             throw new IllegalArgumentException("Ошибка при возврате билетов: количество билетов должно быть положительным.");
         }
@@ -227,7 +227,7 @@ public class Premiere implements Serializable {
     }
 
     // Метод для загрузки отзывов из текстового файла
-    public void loadReviewsFromFile(boolean testMode) {
+    public void loadReviewsFromFile() {
         if (!testMode) {
             String fileName = id + "_reviews.txt"; // Используем ID премьеры для имени файла
             Path filePath = Paths.get(fileName);

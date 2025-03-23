@@ -108,7 +108,7 @@ public class Main {
                         }
                     }
 
-                    Movie movie = new Movie(movieId, title, status);
+                    Movie movie = new Movie(movieId, title, status, genre);
                     movieManager.addMovie(movie);
                     System.out.println("Фильм добавлен: " + title + " genre: " + genre);
 

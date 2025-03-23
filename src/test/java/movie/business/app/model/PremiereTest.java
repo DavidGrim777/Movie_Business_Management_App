@@ -76,7 +76,7 @@ public class PremiereTest {
         assertTrue(Files.exists(filePath), "Файл с отзывами не был создан!");
         System.out.println("File path for loading: " + filePath);
         // Загружаем отзывы обратно
-        premiere.loadReviewsFromFile(true);
+        premiere.loadReviewsFromFile();
 
         // Проверяем, что отзывы загружены корректно
         assertEquals(reviews, premiere.getReviews(), "Загруженные отзывы не совпадают с исходными!");
@@ -281,7 +281,7 @@ public class PremiereTest {
         premiere.sellTickets(50); // Продаем 50 билетов
         // Пример с возвратом больше билетов, чем продано:
         try {
-            premiere.returnTickets(30, 10); // Пример с количеством больше, чем продано
+            premiere.returnTickets(30, 10, true); // Пример с количеством больше, чем продано
             fail("Ожидалась ошибка: Невозможно вернуть больше билетов, чем было продано");
         } catch (IllegalArgumentException e) {
             assertEquals("Ошибка при возврате билетов: Невозможно вернуть больше билетов, чем было продано.", e.getMessage());
@@ -289,7 +289,7 @@ public class PremiereTest {
 
         // Пример с возвратом отрицательного количества билетов:
         try {
-            premiere.returnTickets(-5, 10); // Пример с отрицательным количеством
+            premiere.returnTickets(-5, 10, true); // Пример с отрицательным количеством
             fail("Ожидалась ошибка: количество билетов должно быть положительным");
         } catch (IllegalArgumentException e) {
             assertEquals("Ошибка при возврате билетов: количество билетов должно быть положительным.", e.getMessage());
@@ -376,7 +376,7 @@ public class PremiereTest {
 
         if (shouldThrowException) {
             // Проверяем успешный возврат билетов
-            premiere.returnTickets(ticketsToReturn, premiere.getTicketSold());
+            premiere.returnTickets(ticketsToReturn, premiere.getTicketSold(), true);
 
             // Проверяем, что количество проданных билетов уменьшилось на количество возвращенных
             assertEquals(expectedSold, premiere.getTicketSold(), "Количество проданных билетов должно уменьшиться");
@@ -386,7 +386,7 @@ public class PremiereTest {
         } else {
             // Проверяем, что выбрасывается исключение для неправильных значений
             assertThrows(IllegalArgumentException.class, () ->
-                premiere.returnTickets(ticketsToReturn, premiere.getTicketSold()), "Ошибка при возврате билетов");
+                premiere.returnTickets(ticketsToReturn, premiere.getTicketSold(), true), "Ошибка при возврате билетов");
         }
     }
 
