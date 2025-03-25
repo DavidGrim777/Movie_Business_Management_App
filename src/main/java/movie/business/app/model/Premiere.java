@@ -5,15 +5,8 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serial;
 import java.io.Serializable;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -26,14 +19,13 @@ import java.util.List;
 public class Premiere implements Serializable {
     @Serial//с Java 14, рекомендуется аннотировать @Serial
     private static final long serialVersionUID = 1L; // Версия класса для сериализации
-
     private static final String DATE_FORMAT = "dd.MM.yyyy HH:mm z";
 
     private String id;
     private String movieTitle;
     private ZonedDateTime date;
     private String location;
-    private int ticketCount; // кол-во доступных билетов
+    private int ticketCount; // количество оставшихся билетов (вычисляется как initialTicketCount - ticketSold)
     private int initialTicketCount; // Исходное количество билетов
     private int ticketSold;// кол-во проданных билетов
     private double budget;
@@ -42,27 +34,32 @@ public class Premiere implements Serializable {
     private double ticketPrice; // Стоимость билета
 
 
-    public Premiere(String id, String movieTitle, ZonedDateTime date, String location, int ticketCount) {
+    public Premiere(String id, String movieTitle, ZonedDateTime date, String location, int ticketCount,
+                    int initialTicketCount, int ticketSold, double budget, List<String> guestList,
+                    List<String> reviews, double ticketPrice) {
         this.id = id;
         this.movieTitle = movieTitle;
         this.date = date;
         this.location = location;
         this.ticketCount = ticketCount;
-        this.initialTicketCount = ticketCount; // Начальное количество билетов
+        this.initialTicketCount = ticketCount;
         this.ticketSold = 0;
-        this.budget = 0;
+        this.budget = budget;
         this.guestList = new ArrayList<>();
         this.reviews = new ArrayList<>();
         this.ticketPrice = 10;
 
         // Вызов метода setDate для корректного парсинга даты
-        // Используем форматирование ZonedDateTime в строку
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
         String formattedDate = date.format(formatter);
         setDate(formattedDate);
-
-        loadGuestsFromFile();
     }
+
+    // Перегруженный конструктор для создания премьеры с передачей только основных параметров
+    public Premiere(String id, String movieTitle, ZonedDateTime date, String location, int ticketCount, double budget) {
+        this(id, movieTitle, date, location, ticketCount, ticketCount, 0, budget, new ArrayList<>(), new ArrayList<>(), 10);
+    }
+
     public void setDate(String date) {
         if (date == null || date.trim().isEmpty()) {
             throw new IllegalArgumentException("Дата не может быть пустой или null.");
@@ -81,7 +78,6 @@ public class Premiere implements Serializable {
             throw new IllegalArgumentException("Количество билетов не может быть отрицательным.");
         }
         this.ticketCount = ticketCount;
-
     }
 
     public void setId(String id) {
@@ -114,8 +110,6 @@ public class Premiere implements Serializable {
         }
         guestList.add(guestName); // Добавляем гостя в список
         System.out.println ("Гость " + guestName + " добавлен в список.");
-
-        saveGuestsToFile(testModus); // Сохраняем гостей в файл
     }
 
     // Метод для проверки, можем ли мы продать указанное количество билетов
@@ -124,21 +118,24 @@ public class Premiere implements Serializable {
             log.warn("Ошибка: Количество билетов не может быть отрицательным.");
             return false;
         }
+        int availableTickets = initialTicketCount - ticketSold;
         // Проверяем, не продано ли больше билетов, чем есть в наличии
-        if (ticketSold + count <= ticketCount) {
+        if (count <= availableTickets) {
             return true; // Если количество проданных билетов и новые билеты не превышают доступных, возвращаем true
         } else {
-            log.warn("Ошибка: Недостаточно билетов для продажи {} билетов.", count);
+            log.warn("Ошибка: Недостаточно билетов для продажи {}. Доступно {} билетов.", count, availableTickets);
             return false; // Если билетов недостаточно, возвращаем false
         }
     }
 
-    /// Метод для продажи билетов
+    // Метод для продажи билетов
     public boolean sellTickets(int count) {
         // Проверяем, можем ли продать указанное количество билетов
         if (canSellTickets(count)) {
             // Если можем продать, то увеличиваем количество проданных билетов
             ticketSold = ticketSold + count;
+            // Обновляем количество оставшихся билетов
+            ticketCount = initialTicketCount - ticketSold;
             return true;  // Продажа успешна
         } else {
             // Если нет, выводим сообщение об ошибке
@@ -148,7 +145,7 @@ public class Premiere implements Serializable {
         }
     }
 
-    /// Метод для возврата билетов
+    // Метод для возврата билетов
     public void returnTickets(int ticketsToReturn, int ticketsSold) {
         if (ticketsToReturn <= 0) {
             throw new IllegalArgumentException("Ошибка при возврате билетов: количество билетов должно быть положительным.");
@@ -156,20 +153,17 @@ public class Premiere implements Serializable {
         if (ticketsToReturn > ticketsSold) {
             throw new IllegalArgumentException("Ошибка при возврате билетов: Невозможно вернуть больше билетов, чем было продано.");
         }
-
         // Уменьшаем количество проданных билетов
         ticketSold -= ticketsToReturn;
 
         // Возвращаем билеты в доступные для продажи, но не превышаем начальное количество билетов
         ticketCount = initialTicketCount - ticketSold;
-
-
         System.out.println("Проданные билеты: " + ticketsSold);
         System.out.println("Возвращено " + ticketsToReturn + " билетов.");
         System.out.println("Оставшиеся билеты для продажи: " + ticketCount);
     }
 
-    // Метод для проверки бюджета
+    // Пока не используется, но может пригодиться в расширении логики
     public boolean isBudgetAvailable(double budget) {
         // Проверка, чтобы бюджет премьеры не был отрицательным
         if (budget <= 0) {
@@ -179,7 +173,7 @@ public class Premiere implements Serializable {
         return true; // Если бюджет достаточен, возвращаем true
     }
 
-    // Метод для добавления бюджета
+    // Пока не используется, но может пригодиться если использовать для увеличения бюджета (например, спонсорство)
     public void addBudget(double budgetToAdd) {
         if (budgetToAdd <= 0) {
             throw new IllegalArgumentException("Бюджет не может быть отрицательным или нулевым.");
@@ -195,120 +189,8 @@ public class Premiere implements Serializable {
         } else {
             reviews.add(review); // Добавляем отзыв в список
             System.out.println ("Отзыв добавлен: " + review);
-            saveReviewsToFile(true); // Сохраняем отзывы в текстовый файл
         }
     }
-
-    // Метод для сохранения отзывов в текстовый файл
-    public void saveReviewsToFile(boolean testProcess) {
-        if (!testProcess) {
-        String fileName = id + "_reviews.txt"; // Используем ID премьеры для имени файла
-        Path filePath = Paths.get(fileName);
-        try {
-            // Записываем все отзывы в файл (добавление строк)
-            Files.write(filePath, reviews, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-            System.out.println("Отзывы для премьеры " + id + " сохранены в файл: " + fileName);
-        } catch (IOException e) {
-            System.out.println("Ошибка при сохранении отзывов для премьеры " + id + ": " + e.getMessage());
-            log.warn("Ошибка при сохранении отзывов в файл для премьеры {}: {}", id, e.getMessage());
-        }
-        } else {
-            String fileName = id + "_testReviews.txt"; // Используем ID премьеры для имени файла
-            Path filePath = Paths.get(fileName);
-            try {
-                // Записываем все отзывы в файл (добавление строк)
-                Files.write(filePath, reviews, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-                System.out.println("Отзывы для премьеры " + id + " сохранены в файл: " + fileName);
-            } catch (IOException e) {
-                System.out.println("Ошибка при сохранении отзывов для премьеры " + id + ": " + e.getMessage());
-                log.warn("Ошибка при сохранении отзывов из тестов в файл для премьеры {}: {} ", id, e.getMessage());
-            }
-        }
-    }
-
-    // Метод для загрузки отзывов из текстового файла
-    public void loadReviewsFromFile(boolean testMode) {
-        if (!testMode) {
-            String fileName = id + "_reviews.txt"; // Используем ID премьеры для имени файла
-            Path filePath = Paths.get(fileName);
-            try {
-                reviews = Files.readAllLines(filePath); // Читаем все строки в список
-                System.out.println("Отзывы для премьеры " + id + " загружены из файла: " + fileName);
-            } catch (IOException e) {
-                System.out.println("Ошибка при загрузке отзывов для премьеры " + id + ": " + e.getMessage());
-                log.warn("Ошибка при загрузке отзывов из файла для премьеры {}: {}", id, e.getMessage());
-            }
-            if (!Files.exists(filePath)) {
-                System.out.println("Файл с отзывами не найден для премьеры " + id);
-            }
-        } else {
-            String fileName = id + "_testReviews.txt"; // Используем ID премьеры для имени файла
-            Path filePath = Paths.get(fileName);
-            try {
-                reviews = Files.readAllLines(filePath); // Читаем все строки в список
-                System.out.println("Отзывы для премьеры " + id + " загружены из файла: " + fileName);
-            } catch (IOException e) {
-                System.out.println("Ошибка при загрузке отзывов для премьеры " + id + ": " + e.getMessage());
-                log.warn("Ошибка при загрузке отзывов из тестового файла для премьеры {}: {}", id, e.getMessage());
-            }
-        }
-    }
-
-    // Метод для сохранения гостей в файл
-    public void saveGuestsToFile(boolean testMode) {
-        if (!testMode) {
-            String fileName = id + "_guests.dat"; // Используем ID премьеры для имени файла
-            try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(Paths.get(fileName)))) {
-                oos.writeObject(guestList);
-                System.out.println("Список гостей для премьеры " + id + " сохранен в файл: " + fileName);
-            } catch (IOException e) {
-                System.out.println("Ошибка при сохранении гостей: " + id + ": " + e.getMessage());
-                log.warn("Ошибка при сохранении гостей в файл для премьеры {}: {}", id , e.getMessage());
-            }
-        } else {
-            String fileName = id + "_testGuests.dat"; // Используем ID премьеры для имени файла
-            try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(Paths.get(fileName)))) {
-                oos.writeObject(guestList);
-                System.out.println("Список гостей для премьеры " + id + " сохранен в файл: " + fileName);
-            } catch (IOException e) {
-                System.out.println("Ошибка при сохранении гостей: " + id + ": " + e.getMessage());
-                log.warn("Ошибка при сохранении гостей из тестов в файл для премьеры {}: {}", id, e.getMessage());
-            }
-        }
-
-    }
-    // Метод для загрузки гостей из файла
-    public void loadGuestsFromFile() {
-        String fileName = id + "_guests.dat"; // Используем ID премьеры для имени файла
-        Path path = Paths.get(fileName);
-        System.out.println("Месторасположение файла: " + path.toAbsolutePath());
-        if (!Files.exists(path)) {
-            log.warn("Файл не найден: {} Создаю новый список гостей.", fileName);
-            guestList = new ArrayList<>(); // Создаем пустой список гостей
-            return; // Прерываем выполнение метода, если файла нет
-        }
-        try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(path))) {
-            Object obj = ois.readObject();
-            if (obj instanceof List<?>) { // Проверяем, что obj — это List
-                guestList = new ArrayList<>();
-                for (Object item : (List<?>) obj) { // Приводим элементы списка к String
-                    if (item instanceof String) {
-                        guestList.add((String) item);
-                    } else {
-                        log.warn("Найден неподходящий элемент в списке гостей: {} ", item);
-                    }
-                }
-                System.out.println("Список гостей для премьеры " + id + " загружен из файла: " + fileName);
-            } else {
-                log.warn("Файл не содержит корректный список гостей.");
-                guestList = new ArrayList<>(); // Создаем пустой список, если формат неверный
-            }
-        } catch (IOException | ClassNotFoundException e) {
-            log.warn("Ошибка при загрузке гостей из файла для премьеры {}: {}", id, e.getMessage());
-            System.out.println("Ошибка при загрузке гостей из файла для премьеры " + id + ": " + e.getMessage());
-        }
-    }
-
     // Генерация отчета о премьере
     public String generateReport() {
         double totalRevenue = ticketSold * ticketPrice; // Примерная стоимость билета $10
