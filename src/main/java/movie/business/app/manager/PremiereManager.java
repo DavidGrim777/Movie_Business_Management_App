@@ -5,20 +5,25 @@ import lombok.extern.slf4j.Slf4j;
 import movie.business.app.model.Premiere;
 import movie.business.app.repository.PremiereRepository;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
 @Getter
 public class PremiereManager {
     // Карта, которая хранит премьеры, где ключ — это ID премьеры, а значение — сам объект Premiere
-    private Map<String, Premiere> premiereMap = new HashMap<>();
+    private final Map<String, Premiere> premiereMap;
     private final PremiereRepository repository = new PremiereRepository();
-    private boolean isTestMode = false;  // Флаг для режима тестирования
+    private final boolean testMode;
 
     // Конструктор класса, который загружает данные о премьерах из файла при создании объекта
-    public PremiereManager() {
+    public PremiereManager(boolean testMode) {
+        this.testMode = testMode;
         this.premiereMap = repository.loadPremiereFromFile();
+    }
+
+    // Конструктор по умолчанию (обычный режим)
+    public PremiereManager() {
+        this(false);
     }
 
     // Метод для добавления новой премьеры в список
@@ -33,7 +38,7 @@ public class PremiereManager {
     }
 
     public void savePremieresToFile() {
-        repository.savePremieresToFile(premiereMap);
+        repository.savePremieresToFile(premiereMap, testMode);
     }
 
     //Метод для поиска премьеры по ID.
@@ -82,15 +87,5 @@ public class PremiereManager {
     //Метод для получения информации о количестве премьер
     public int getPremiereCount() {
         return premiereMap.size();
-    }
-
-    public void setTestMode(boolean testMode) {
-        this.isTestMode = testMode;
-    }
-
-    public void clearData() {
-        if (isTestMode) {
-            premiereMap.clear();
-        }
     }
 }

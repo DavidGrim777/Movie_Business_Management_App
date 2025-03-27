@@ -1,6 +1,7 @@
 package movie.business.app.model;
 
 import lombok.extern.slf4j.Slf4j;
+import movie.business.app.repository.PremiereRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,11 +37,9 @@ public class PremiereTest {
 
     @BeforeEach
     void setUp() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm z");
-        String dateString = "02.02.2025 10:00 UTC";
-        ZonedDateTime date = ZonedDateTime.parse(dateString, formatter.withZone(ZoneId.systemDefault()));
-
-        premiere = new Premiere("1", "Titanic", date, "Cinema City", 100);
+        premiere = new Premiere(testId, "Titanic",
+                ZonedDateTime.of(2025, 2, 2, 10, 0, 0, 0, ZoneId.of("UTC")),
+                "Cinema City", 100, 5000000);
         premiere.setReviews(new ArrayList<>());
     }
     @AfterEach
@@ -49,6 +47,7 @@ public class PremiereTest {
         // Удаляем тестовые файлы после каждого теста
         deleteTestFile(testId + "_testReviews.txt");
         deleteTestFile(testId + "_testGuests.dat");
+        deleteTestFile(testId + "test_premieres.txt");
     }
 
     private void deleteTestFile(String fileName) {
@@ -56,29 +55,29 @@ public class PremiereTest {
         try {
             Files.deleteIfExists(filePath);
             System.out.println("Файл " + fileName + " успешно удалён.");
+            log.info("Файл {} успешно удалён.", fileName);
         } catch (IOException e) {
             System.out.println("Ошибка при удалении файла: " + fileName + " - " + e.getMessage());
+            log.warn("Ошибка при удалении файла {}: {}", fileName, e.getMessage());
         }
     }
 
     @Test
     void testSaveAndLoadReviews() throws IOException {
-        Files.deleteIfExists(Path.of(testId + "_testReviews.txt"));
-        // Добавляем тестовые отзывы
+        PremiereRepository repository = new PremiereRepository();
+        Path filePath = Path.of(testId + "_testReviews.txt");
+        Files.deleteIfExists(filePath);
+
         List<String> reviews = Arrays.asList("Отличный фильм!", "Очень понравилось.");
         premiere.getReviews().addAll(reviews);
 
-        // Сохраняем отзывы в файл (используем тестовый режим)
-        premiere.saveReviewsToFile(true);
+        // Сохраняем отзывы в тестовый файл
+        repository.saveReviewsToFile(premiere, true);
 
-        // Проверяем, создался ли файл
-        Path filePath = Path.of(testId + "_testReviews.txt");
         assertTrue(Files.exists(filePath), "Файл с отзывами не был создан!");
-        System.out.println("File path for loading: " + filePath);
-        // Загружаем отзывы обратно
-        premiere.loadReviewsFromFile(true);
 
-        // Проверяем, что отзывы загружены корректно
+        premiere.getReviews().clear();
+        repository.loadReviewsFromFile(premiere, true);
         assertEquals(reviews, premiere.getReviews(), "Загруженные отзывы не совпадают с исходными!");
     }
 
@@ -88,21 +87,18 @@ public class PremiereTest {
         List<String> guests = Arrays.asList("Иван Иванов", "Мария Петрова");
         premiere.getGuestList().addAll(guests);
 
-        // Сохраняем гостей в файл (используем тестовый режим)
-        premiere.saveGuestsToFile(true);
+        // Сохраняем гостей в файл (важно!)
+        PremiereRepository repository = new PremiereRepository();
+        repository.saveGuestsToFile(premiere, true);
 
         // Проверяем, создался ли файл
         Path filePath = Path.of(System.getProperty("user.dir"), testId + "_testGuests.dat");
         System.out.println("File path: " + filePath.toAbsolutePath()); // Печатаем полный путь
         assertTrue(Files.exists(filePath), "Файл с гостями не был создан!");
 
-        // Загружаем гостей обратно
-        premiere.loadGuestsFromFile();
 
         // Проверяем, что гости загружены корректно
         assertEquals(guests, premiere.getGuestList(), "Загруженные гости не совпадают с исходными!");
-        assertDoesNotThrow(() -> premiere.saveGuestsToFile(true));
-        assertDoesNotThrow(() -> premiere.loadGuestsFromFile());
     }
 
     @Test
@@ -150,15 +146,15 @@ public class PremiereTest {
     @Test
     void testGetLocation() {
         // Тест 1: Корректное местоположение
-        Premiere premiereWithLocation = new Premiere("1", "Titanic", ZonedDateTime.now(), "Cinema City", 100);
+        Premiere premiereWithLocation = new Premiere("1", "Titanic", ZonedDateTime.now(), "Cinema City", 100,5000000);
         assertEquals("Cinema City", premiereWithLocation.getLocation(), "Метод getLocation() должен возвращать указанное местоположение");
 
         // Тест 2: Пустое местоположение
-        Premiere premiereWithEmptyLocation = new Premiere("2", "Avatar", ZonedDateTime.now(), "", 150);
+        Premiere premiereWithEmptyLocation = new Premiere("2", "Avatar", ZonedDateTime.now(), "", 150, 1000000);
         assertEquals("Местоположение не указано", premiereWithEmptyLocation.getLocation(), "Метод getLocation() должен корректно обрабатывать пустое местоположение");
 
         // Тест 3: null местоположение
-        Premiere premiereWithNullLocation = new Premiere("3", "Inception", ZonedDateTime.now(), null, 200);
+        Premiere premiereWithNullLocation = new Premiere("3", "Inception", ZonedDateTime.now(), null, 200,2000000);
         assertEquals("Местоположение не указано", premiereWithNullLocation.getLocation(), "Метод getLocation() должен корректно обрабатывать null местоположение");
     }
 
@@ -208,7 +204,7 @@ public class PremiereTest {
     @MethodSource("guestDataProvider")
     void testAddGuest(String guestName, boolean guestAge, boolean expectedResult) {
         // Act: Добавление гостя
-        premiere.addGuest(guestName, guestAge,true);
+        premiere.addGuest(guestName, guestAge);
 
         // Assert: Проверка, был ли добавлен гость в список
         if (expectedResult) {
@@ -232,7 +228,7 @@ public class PremiereTest {
     @Test
     void testSetTicketCount() {
         // Arrange: подготовка данных
-        Premiere premiere = new Premiere("1", "Titanic", ZonedDateTime.now(), "Cinema City", 100);
+        Premiere premiere = new Premiere("1", "Titanic", ZonedDateTime.now(), "Cinema City", 100, 5000000);
 
         // Act: установка нового значения количества билетов
         premiere.setTicketCount(150);

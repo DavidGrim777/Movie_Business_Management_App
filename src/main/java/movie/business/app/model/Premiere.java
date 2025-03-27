@@ -37,7 +37,7 @@ public class Premiere implements Serializable {
     public Premiere(String id, String movieTitle, ZonedDateTime date, String location, int ticketCount,
                     int initialTicketCount, int ticketSold, double budget, List<String> guestList,
                     List<String> reviews, double ticketPrice) {
-        this.id = id;
+        setId(id); // Проверка на null, пустую строку и длину
         this.movieTitle = movieTitle;
         this.date = date;
         this.location = location;
@@ -98,7 +98,7 @@ public class Premiere implements Serializable {
     }
 
     // Метод для добавления гостей с проверкой возраста и минимального возраста премьеры
-    public void addGuest(String guestName, boolean isGuestAge, boolean testModus) {
+    public void addGuest(String guestName, boolean isGuestAge) {
 
         if (guestName == null || guestName.trim().isEmpty()) {
             log.warn("Ошибка при добавлении гостя: Имя гостя не может быть пустым.");

@@ -1,11 +1,15 @@
 package movie.business.app.manager;
 
 import movie.business.app.model.Premiere;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -20,16 +24,29 @@ public class PremiereManagerTest {
 
     @BeforeEach
     void setUp() {
-        premiereManager = new PremiereManager();
-        premiereManager.setTestMode(true);  // Включаем тестовый режим
-        premiereManager.clearData();  // Очищаем данные перед каждым тестом
-
+        premiereManager = new PremiereManager(true);
+        premiereManager.getPremiereMap().clear();
         // Используем правильный формат для даты с учетом часового пояса
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm z");
-        String dateString = "02.02.2025 10:00 +03:00";  // Формат с часовым поясом
-        ZonedDateTime date = ZonedDateTime.parse(dateString, formatter);
-        premiere = new Premiere("1", "Titanic", date, "IMAX", 150);
+        ZonedDateTime date = ZonedDateTime.of(2025, 2, 2, 10, 0, 0, 0, java.time.ZoneId.of("UTC+03:00"));
+        premiere = new Premiere("1", "Titanic", date, "IMAX", 150,2000000);
     }
+    @AfterEach
+    void tearDown() {
+        String testFileName = "test_premieres.txt";
+        deleteTestFile(testFileName);  //  Удаляем тестовый файл после тестов
+    }
+
+    //  Добавляем метод удаления файла
+    private void deleteTestFile(String fileName) {
+        Path filePath = Paths.get(System.getProperty("user.dir"), fileName);
+        try {
+            Files.deleteIfExists(filePath);
+            System.out.println("Файл " + fileName + " успешно удалён.");
+        } catch (IOException e) {
+            System.out.println("Ошибка при удалении файла: " + fileName + " - " + e.getMessage());
+        }
+    }
+
 
     @Test
     void testAddPremiere() {
@@ -38,26 +55,28 @@ public class PremiereManagerTest {
 
         // Assert: Проверка, что премьера была добавлена
         assertEquals(1, premiereManager.getPremiereMap().size(), "Количество премьер должно быть 1.");
-        assertTrue(premiereManager.getPremiereMap().containsKey("1"), "Премьера с ID 2 должна быть добавлена.");
+        assertTrue(premiereManager.getPremiereMap().containsKey("1"), "Премьера с ID 1 должна быть добавлена.");
     }
 
     @Test
     void testAddPremiereWithNullPremiere() {
-        // Act & Assert: Проверка, что добавление null премьеры вызывает исключение
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> premiereManager.addPremiere(null));
-        assertEquals("Премьера не может быть null.", exception.getMessage());
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> premiereManager.addPremiere(null)
+        );
+        assertEquals("ID и премьера не может быть null.", exception.getMessage());
     }
 
     @Test
     void testAddPremiereWithNullId() {
-        // Arrange: Премьера без ID
-        Premiere premiereWithNullId = new Premiere(null, "Avatar", ZonedDateTime.now(), "IMAX", 200);
-
-        // Act & Assert: Проверка, что добавление премьеры без ID вызывает исключение
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> premiereManager.addPremiere(premiereWithNullId));
-        assertEquals("ID премьеры не может быть null.", exception.getMessage());
+        // Проверка выброса исключения при создании премьеры с null ID
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                // лямбда-выражения () -> вызов метода без параметров
+                () -> new Premiere(null, "Avatar", ZonedDateTime.now(), "IMAX", 200, 2000000)
+        );
+        assertEquals("ID не может быть пустым или null.", exception.getMessage());
     }
-
 
     @Test
     void testFindPremiereById() {
@@ -110,33 +129,42 @@ public class PremiereManagerTest {
 
     @Test
     void testGeneratePremiereReportWithNoPremieres() {
+
         // Act: Генерация отчета без добавленных премьер
+        // Перехватываем консольный вывод, чтобы проверить сообщение
+        java.io.ByteArrayOutputStream outContent = new java.io.ByteArrayOutputStream();
+        System.setOut(new java.io.PrintStream(outContent));
         premiereManager.generatePremiereReport();
 
-        // Assert: Печать "Нет премьеры для генерации отчета."
-        // Проверяем, что сообщение выводится в консоль
-        // В реальных тестах можно использовать подходы с mockito для проверки консольных выводов
+        // Проверяем, что выводится сообщение "Нет премьеры для генерации отчета."
+        assertTrue(outContent.toString().contains("Нет премьеры для генерации отчета."),
+                "Ожидалось сообщение о пустом списке премьер.");
+
+        System.setOut(System.out); // Восстанавливаем стандартный вывод
     }
 
     @Test
     void testGeneratePremiereReportWithPremieres() {
         // Arrange: Добавляем несколько премьер
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm z");
-        String dateString1 = "10.11.2025 14:30 +03:00";  // Формат с часовым поясом
-        ZonedDateTime date1 = ZonedDateTime.parse(dateString1, formatter);
+        ZonedDateTime date1 = ZonedDateTime.of(2025, 11, 10, 14, 30, 0, 0, java.time.ZoneId.of("UTC+03:00"));
+        Premiere premiere1 = new Premiere("1", "Titanic", date1, "Cinema City", 100, 2000000);
 
-        // Arrange: Добавляем несколько премьер
-        Premiere premiere1 = new Premiere("1", "Titanic", date1, "Cinema City", 100);
-        String dateString2 = "05.05.2025 12:00 +03:00";  // Формат с часовым поясом
-        ZonedDateTime date2 = ZonedDateTime.parse(dateString2, formatter);
-        Premiere premiere2 = new Premiere("2", "Avatar", date2, "IMAX", 200);
+        ZonedDateTime date2 = ZonedDateTime.of(2025, 5, 5, 12, 0, 0, 0, java.time.ZoneId.of("UTC+03:00"));
+        Premiere premiere2 = new Premiere("2", "Avatar", date2, "IMAX", 200, 2000000);
+
         premiereManager.addPremiere(premiere1);
         premiereManager.addPremiere(premiere2);
 
-        // Act: Генерация отчета
+        // Перехватываем консольный вывод, чтобы проверить содержимое отчёта
+        java.io.ByteArrayOutputStream outContent = new java.io.ByteArrayOutputStream();
+        System.setOut(new java.io.PrintStream(outContent));
+
         premiereManager.generatePremiereReport();
 
-        // Assert: Проверяем, что отчеты сгенерированы для каждой премьеры
-        // Здесь можно использовать подходы с mockito для проверки вывода в консоль
+        String output = outContent.toString();
+        assertTrue(output.contains("Titanic"), "Отчет должен содержать название Titanic.");
+        assertTrue(output.contains("Avatar"), "Отчет должен содержать название Avatar.");
+
+        System.setOut(System.out); // Восстанавливаем стандартный вывод
     }
 }
