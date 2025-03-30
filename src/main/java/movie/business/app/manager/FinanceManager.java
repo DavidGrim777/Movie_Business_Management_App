@@ -212,6 +212,7 @@ public class FinanceManager {
         }
 
         repository.saveRecords(financeRecords,false);
+        repository.generatePDFReport(records);
 
         if (printToConsole) {
             System.out.println("=====Финансовый отчет=====");
