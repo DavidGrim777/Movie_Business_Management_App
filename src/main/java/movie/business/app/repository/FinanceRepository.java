@@ -75,7 +75,7 @@ public class FinanceRepository {
     public List<FinanceRecord> loadRecords(boolean testMode) {
         List<FinanceRecord> records = new ArrayList<>();
 
-        if(!testMode) {
+        if (!testMode) {
             String fileName = "finance_records.csv";
             Path filePath = Paths.get(fileName);
             if (!Files.exists(filePath)) {
@@ -190,103 +190,104 @@ public class FinanceRepository {
             return records;
         }
     }
-        // Генерация PDF-отчёта с использованием Apache PDFBox.
-        public void generatePDFReport (List < FinanceRecord > records) {
-            String pdfFileName = "finance_report.pdf";
-            try (org.apache.pdfbox.pdmodel.PDDocument document = new org.apache.pdfbox.pdmodel.PDDocument()) {
-                org.apache.pdfbox.pdmodel.PDPage page = new org.apache.pdfbox.pdmodel.PDPage(org.apache.pdfbox.pdmodel.common.PDRectangle.A4);
-                document.addPage(page);
 
-                java.io.File fontFile = new java.io.File("/System/Library/Fonts/Supplemental/Arial.ttf");
-                org.apache.pdfbox.pdmodel.font.PDType0Font font = org.apache.pdfbox.pdmodel.font.PDType0Font.load(document, fontFile);
+    // Генерация PDF-отчёта с использованием Apache PDFBox.
+    public void generatePDFReport(List<FinanceRecord> records) {
+        String pdfFileName = "finance_report.pdf";
+        try (org.apache.pdfbox.pdmodel.PDDocument document = new org.apache.pdfbox.pdmodel.PDDocument()) {
+            org.apache.pdfbox.pdmodel.PDPage page = new org.apache.pdfbox.pdmodel.PDPage(org.apache.pdfbox.pdmodel.common.PDRectangle.A4);
+            document.addPage(page);
 
-                org.apache.pdfbox.pdmodel.PDPageContentStream contentStream = new org.apache.pdfbox.pdmodel.PDPageContentStream(document, page);
+            java.io.File fontFile = new java.io.File("/System/Library/Fonts/Supplemental/Arial.ttf");
+            org.apache.pdfbox.pdmodel.font.PDType0Font font = org.apache.pdfbox.pdmodel.font.PDType0Font.load(document, fontFile);
 
-                float yPosition = 750;
-                float margin = 50;
-                float rowHeight = 16;
-                float tableWidth = page.getMediaBox().getWidth() - 2 * margin;
-                float[] columnWidths = {70, 70, 70, 220, 100};
-                String[] headers = {"ID", "Тип", "Сумма", "Описание", "Дата"};
+            org.apache.pdfbox.pdmodel.PDPageContentStream contentStream = new org.apache.pdfbox.pdmodel.PDPageContentStream(document, page);
 
-                // Заголовок отчёта
-                contentStream.setFont(font, 14);
+            float yPosition = 750;
+            float margin = 50;
+            float rowHeight = 16;
+            float tableWidth = page.getMediaBox().getWidth() - 2 * margin;
+            float[] columnWidths = {70, 70, 70, 220, 100};
+            String[] headers = {"ID", "Тип", "Сумма", "Описание", "Дата"};
+
+            // Заголовок отчёта
+            contentStream.setFont(font, 14);
+            contentStream.beginText();
+            contentStream.newLineAtOffset(margin, yPosition);
+            contentStream.showText("Детализированный финансовый отчёт");
+            contentStream.endText();
+
+            yPosition -= 25;
+
+            // Рисуем заголовки таблицы
+            float nextX = margin;
+            contentStream.setFont(font, 11);
+            for (int i = 0; i < headers.length; i++) {
                 contentStream.beginText();
-                contentStream.newLineAtOffset(margin, yPosition);
-                contentStream.showText("Детализированный финансовый отчёт");
+                contentStream.newLineAtOffset(nextX + 2, yPosition);
+                contentStream.showText(headers[i]);
                 contentStream.endText();
+                nextX += columnWidths[i];
+            }
 
-                yPosition -= 25;
+            // Горизонтальная линия под заголовком
+            contentStream.moveTo(margin, yPosition - 2);
+            contentStream.lineTo(margin + tableWidth, yPosition - 2);
+            contentStream.stroke();
 
-                // Рисуем заголовки таблицы
-                float nextX = margin;
-                contentStream.setFont(font, 11);
-                for (int i = 0; i < headers.length; i++) {
+            yPosition -= rowHeight;
+
+            contentStream.setFont(font, 10);
+            for (FinanceRecord record : records) {
+                if (yPosition < 50) {
+                    contentStream.close();
+                    page = new org.apache.pdfbox.pdmodel.PDPage(org.apache.pdfbox.pdmodel.common.PDRectangle.A4);
+                    document.addPage(page);
+                    contentStream = new org.apache.pdfbox.pdmodel.PDPageContentStream(document, page);
+                    yPosition = 750;
+                }
+                String[] data = {
+                        record.getId(),
+                        record.getType().toString(),
+                        String.format("%.2f", record.getAmount()),
+                        record.getDescription(),
+                        record.getDate().toString()
+                };
+                nextX = margin;
+                for (int i = 0; i < data.length; i++) {
                     contentStream.beginText();
                     contentStream.newLineAtOffset(nextX + 2, yPosition);
-                    contentStream.showText(headers[i]);
+                    contentStream.showText(data[i].length() > 35 ? data[i].substring(0, 35) + "..." : data[i]);
                     contentStream.endText();
                     nextX += columnWidths[i];
                 }
 
-                // Горизонтальная линия под заголовком
+                // Горизонтальная линия
                 contentStream.moveTo(margin, yPosition - 2);
                 contentStream.lineTo(margin + tableWidth, yPosition - 2);
                 contentStream.stroke();
 
                 yPosition -= rowHeight;
-
-                contentStream.setFont(font, 10);
-                for (FinanceRecord record : records) {
-                    if (yPosition < 50) {
-                        contentStream.close();
-                        page = new org.apache.pdfbox.pdmodel.PDPage(org.apache.pdfbox.pdmodel.common.PDRectangle.A4);
-                        document.addPage(page);
-                        contentStream = new org.apache.pdfbox.pdmodel.PDPageContentStream(document, page);
-                        yPosition = 750;
-                    }
-                    String[] data = {
-                            record.getId(),
-                            record.getType().toString(),
-                            String.format("%.2f", record.getAmount()),
-                            record.getDescription(),
-                            record.getDate().toString()
-                    };
-                    nextX = margin;
-                    for (int i = 0; i < data.length; i++) {
-                        contentStream.beginText();
-                        contentStream.newLineAtOffset(nextX + 2, yPosition);
-                        contentStream.showText(data[i].length() > 35 ? data[i].substring(0, 35) + "..." : data[i]);
-                        contentStream.endText();
-                        nextX += columnWidths[i];
-                    }
-
-                    // Горизонтальная линия
-                    contentStream.moveTo(margin, yPosition - 2);
-                    contentStream.lineTo(margin + tableWidth, yPosition - 2);
-                    contentStream.stroke();
-
-                    yPosition -= rowHeight;
-                }
-
-                yPosition -= 10;
-                double totalIncome = records.stream().filter(r -> r.getType() == FinanceType.INCOME).mapToDouble(FinanceRecord::getAmount).sum();
-                double totalExpense = records.stream().filter(r -> r.getType() == FinanceType.EXPENSE).mapToDouble(FinanceRecord::getAmount).sum();
-                double overallTotal = totalIncome - totalExpense;
-
-                contentStream.beginText();
-                contentStream.setFont(font, 12);
-                contentStream.newLineAtOffset(margin, yPosition);
-                contentStream.showText(String.format("Общий доход: %.2f, Расходы: %.2f, Итог: %.2f", totalIncome, totalExpense, overallTotal));
-                contentStream.endText();
-
-                contentStream.close();
-                document.save(pdfFileName);
-                log.info("PDF-отчёт успешно сгенерирован: {}", pdfFileName);
-                System.out.println("PDF-отчёт успешно сгенерирован: " + pdfFileName);
-
-            } catch (IOException e) {
-                log.error("Ошибка при генерации PDF-отчёта: {}", e.getMessage());
             }
+
+            yPosition -= 10;
+            double totalIncome = records.stream().filter(r -> r.getType() == FinanceType.INCOME).mapToDouble(FinanceRecord::getAmount).sum();
+            double totalExpense = records.stream().filter(r -> r.getType() == FinanceType.EXPENSE).mapToDouble(FinanceRecord::getAmount).sum();
+            double overallTotal = totalIncome - totalExpense;
+
+            contentStream.beginText();
+            contentStream.setFont(font, 12);
+            contentStream.newLineAtOffset(margin, yPosition);
+            contentStream.showText(String.format("Общий доход: %.2f, Расходы: %.2f, Итог: %.2f", totalIncome, totalExpense, overallTotal));
+            contentStream.endText();
+
+            contentStream.close();
+            document.save(pdfFileName);
+            log.info("PDF-отчёт успешно сгенерирован: {}", pdfFileName);
+            System.out.println("PDF-отчёт успешно сгенерирован: " + pdfFileName);
+
+        } catch (IOException e) {
+            log.error("Ошибка при генерации PDF-отчёта: {}", e.getMessage());
         }
     }
+}

@@ -218,23 +218,23 @@ public class Main {
                         }
                     }
 
-                            double budget = 0;
-                            while (budget <= 0) {
-                                System.out.print("Введите бюджет премьеры: ");
-                                try {
-                                    budget = Double.parseDouble(scanner.nextLine());
-                                    if (budget <= 0) {
-                                        System.out.println("Ошибка: Бюджет должен быть больше 0.");
-                                    }
-                                } catch (NumberFormatException e) {
-                                    System.out.println("Ошибка: Введите корректное значение бюджета.");
-                                }
+                    double budget = 0;
+                    while (budget <= 0) {
+                        System.out.print("Введите бюджет премьеры: ");
+                        try {
+                            budget = Double.parseDouble(scanner.nextLine());
+                            if (budget <= 0) {
+                                System.out.println("Ошибка: Бюджет должен быть больше 0.");
                             }
+                        } catch (NumberFormatException e) {
+                            System.out.println("Ошибка: Введите корректное значение бюджета.");
+                        }
+                    }
 
                     Premiere newPremiere = new Premiere(premiereId, premiereTitle, premiereDate, premierePlace, ticketCount, budget);
                     premiereManager.addPremiere(newPremiere);
                     // Вызываем сохранение премьер в файл через репозиторий:
-                    premiereRepository.savePremieresToFile(premiereManager.getPremiereMap(),false);
+                    premiereRepository.savePremieresToFile(premiereManager.getPremiereMap(), false);
                     break;
 
                 case 8: // Добавление гостя на премьеру
@@ -285,7 +285,7 @@ public class Main {
                             Premiere premiere = entry.getValue();  // Получаем объект премьеры
 
                             // Загружаем гостей из файла
-                            premiereRepository.loadGuestsFromFile(premiere,false);
+                            premiereRepository.loadGuestsFromFile(premiere, false);
 
                             System.out.println("ID: " + entry.getKey() + ", Название: " + premiere.getMovieTitle() +
                                     ", Дата: " + premiere.getDate() + ", Место: " + premiere.getLocation());
@@ -359,7 +359,7 @@ public class Main {
                             System.out.println("Дата установлена как текущая: " + date.format(formatter));
                         } else {
                             try {
-                                date = LocalDate.parse(input,formatter);
+                                date = LocalDate.parse(input, formatter);
                             } catch (DateTimeParseException e) {
                                 System.out.println("Ошибка: Неверный формат даты. Попробуйте еще раз.");
                             }
@@ -370,7 +370,7 @@ public class Main {
                     );
                     System.out.println("Финансовая запись успешно добавлена.");
                     // Сохранение финансовых записей в файл
-                    financeRepository.saveRecords(financeManager.getFinanceRecords(),false);
+                    financeRepository.saveRecords(financeManager.getFinanceRecords(), false);
                     break;
 
                 case 12:
@@ -405,7 +405,7 @@ public class Main {
                         // Пробуем продать билеты через метод sellTickets в Premiere
                         if (premiere.sellTickets(ticketsToSell)) {
                             System.out.println("Продано билетов: " + ticketsToSell +
-                                    " по цене " + ticketPrice+ " на сумму: " + totalIncome);
+                                    " по цене " + ticketPrice + " на сумму: " + totalIncome);
 
                             // Запись о финансовой операции в формате CSV
                             FinanceRecord financeRecord = new FinanceRecord(
@@ -426,9 +426,9 @@ public class Main {
                             financeManager.generateFinanceReport(false);
 
                             //Сохранияем в файл finance_report.csv
-                            financeRepository.saveRecords(financeManager.getFinanceRecords(),false);
+                            financeRepository.saveRecords(financeManager.getFinanceRecords(), false);
 
-                        }else{
+                        } else {
                             System.out.println("Недостаточно билетов для продажи.");
 
                         }
@@ -471,14 +471,14 @@ public class Main {
                                     LocalDate.now()
                             ));
 
-                             //  Сохраняем обновлённую премьеру в файл premieres.txt
+                            // Сохраняем обновлённую премьеру в файл premieres.txt
                             premiereRepository.savePremieresToFile(premiereManager.getPremiereMap(), false);
 
                             // Экспортируем финансы в CSV после возврата билетов
                             financeManager.generateFinanceReport(true);
 
                             //Сохранияем в файл finance_report.csv
-                            financeRepository.saveRecords(financeManager.getFinanceRecords(),false);
+                            financeRepository.saveRecords(financeManager.getFinanceRecords(), false);
 
 
                         } catch (IllegalArgumentException e) {
@@ -493,8 +493,7 @@ public class Main {
                 case 15:// Генерация отчета
                     if (financeManager.hasRecords()) {
                         financeManager.generateFinanceReport(true);
-                    }
-                    else {
+                    } else {
                         System.out.println("Отчет не может быть сгенерирован, так как нет записей для анализа.");
                     }
                     break;

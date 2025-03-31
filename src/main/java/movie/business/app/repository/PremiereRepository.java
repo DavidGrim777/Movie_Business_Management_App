@@ -29,28 +29,28 @@ public class PremiereRepository {
 
     public void savePremieresToFile(Map<String, Premiere> premiereMap, boolean testModus) {
         if (!testModus) {
-        String fileName = "premieres.txt";
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
-            writer.write("ID, Название, Дата, Бюджет, Локация, Кол-во билетов, Продано билетов");
-            writer.newLine();
-
-            for (Premiere premiere : premiereMap.values()) {
-                String premiereData = premiere.getId() + ", " +
-                        premiere.getMovieTitle() + ", " +
-                        premiere.getDate().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm z", Locale.ENGLISH)) + ", " +
-                        premiere.getBudget() + ", " +
-                        premiere.getLocation() + ", " +
-                        premiere.getTicketCount()+ ", " +
-                        premiere.getTicketSold();
-                writer.write(premiereData);
+            String fileName = "premieres.txt";
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+                writer.write("ID, Название, Дата, Бюджет, Локация, Кол-во билетов, Продано билетов");
                 writer.newLine();
+
+                for (Premiere premiere : premiereMap.values()) {
+                    String premiereData = premiere.getId() + ", " +
+                            premiere.getMovieTitle() + ", " +
+                            premiere.getDate().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm z", Locale.ENGLISH)) + ", " +
+                            premiere.getBudget() + ", " +
+                            premiere.getLocation() + ", " +
+                            premiere.getTicketCount() + ", " +
+                            premiere.getTicketSold();
+                    writer.write(premiereData);
+                    writer.newLine();
+                }
+                System.out.println("Все премьеры сохранены в файл." + fileName);
+                log.info("Все премьеры сохранены в файл {}", fileName);
+            } catch (IOException e) {
+                System.out.println("Ошибка при сохранении премьер: " + e.getMessage());
+                log.warn("Ошибка при сохранении премьер: {}", e.getMessage());
             }
-            System.out.println("Все премьеры сохранены в файл." + fileName);
-            log.info("Все премьеры сохранены в файл {}", fileName);
-        } catch (IOException e) {
-            System.out.println("Ошибка при сохранении премьер: " + e.getMessage());
-            log.warn("Ошибка при сохранении премьер: {}", e.getMessage());
-        }
         } else {
             String fileName = "test_premieres.txt";
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
@@ -63,7 +63,7 @@ public class PremiereRepository {
                             premiere.getDate().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm z", Locale.ENGLISH)) + ", " +
                             premiere.getBudget() + ", " +
                             premiere.getLocation() + ", " +
-                            premiere.getTicketCount()+ ", " +
+                            premiere.getTicketCount() + ", " +
                             premiere.getTicketSold();
                     writer.write(premiereData);
                     writer.newLine();
@@ -78,7 +78,7 @@ public class PremiereRepository {
     }
 
     // Метод для сохранения гостей в файл
-    public void saveGuestsToFile( Premiere premiere, boolean testMode) {
+    public void saveGuestsToFile(Premiere premiere, boolean testMode) {
         String id = premiere.getId();
         List<String> guestList = premiere.getGuestList();
         if (!testMode) {
@@ -88,7 +88,7 @@ public class PremiereRepository {
                 System.out.println("Список гостей для премьеры " + id + " сохранен в файл: " + fileName);
             } catch (IOException e) {
                 System.out.println("Ошибка при сохранении гостей: " + id + ": " + e.getMessage());
-                log.warn("Ошибка при сохранении гостей в файл для премьеры {}: {}", id , e.getMessage());
+                log.warn("Ошибка при сохранении гостей в файл для премьеры {}: {}", id, e.getMessage());
             }
         } else {
             String fileName = id + "_testGuests.dat"; // Используем ID премьеры для имени файла
@@ -173,6 +173,7 @@ public class PremiereRepository {
         }
         return premiereMap;
     }
+
     // Метод для создания объекта Premiere
     public Premiere createPremiere(String[] data) {
         try {

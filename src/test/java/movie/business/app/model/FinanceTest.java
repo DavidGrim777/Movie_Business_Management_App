@@ -26,6 +26,7 @@ public class FinanceTest {
         financeManager = new FinanceManager(true);
         financeManager.clearData(true);
     }
+
     @AfterEach
     void tearDown() {
         deleteTestFile("test_finance_records.csv");

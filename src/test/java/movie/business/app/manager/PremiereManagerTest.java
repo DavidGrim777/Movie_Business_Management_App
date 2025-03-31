@@ -28,8 +28,9 @@ public class PremiereManagerTest {
         premiereManager.getPremiereMap().clear();
         // Используем правильный формат для даты с учетом часового пояса
         ZonedDateTime date = ZonedDateTime.of(2025, 2, 2, 10, 0, 0, 0, java.time.ZoneId.of("UTC+03:00"));
-        premiere = new Premiere("1", "Titanic", date, "IMAX", 150,2000000);
+        premiere = new Premiere("1", "Titanic", date, "IMAX", 150, 2000000);
     }
+
     @AfterEach
     void tearDown() {
         String testFileName = "test_premieres.txt";

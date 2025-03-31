@@ -26,7 +26,6 @@ public class FinanceManager {
     private static final String FILE_NAME = "finance_records.csv";
     private final boolean testMode;
 
-
     public FinanceManager(boolean testMode) {
         this.financeRecords = new ArrayList<>();
         this.testMode = testMode;
@@ -67,7 +66,7 @@ public class FinanceManager {
             throw new IllegalArgumentException("Сумма должна быть больше 0.");
         }
         // Проверка на тип записи
-        if (record.getType() == null ) {
+        if (record.getType() == null) {
             log.warn("Ошибка: тип записи не может быть null.");
             throw new IllegalArgumentException("Ошибка: тип записи не может быть null. " + record.getType());
         }
@@ -221,10 +220,10 @@ public class FinanceManager {
 
         for (FinanceRecord record : records) {
             if (record.getType() == FinanceType.INCOME && record.getDescription().contains("Продажа билетов")) {
-                ticketsSold += (int)(record.getAmount() / averageTicketPrice);
+                ticketsSold += (int) (record.getAmount() / averageTicketPrice);
             }
             if (record.getType() == FinanceType.EXPENSE && record.getDescription().contains("Возврат билетов")) {
-                ticketsRefunded += (int)(record.getAmount() / averageTicketPrice);
+                ticketsRefunded += (int) (record.getAmount() / averageTicketPrice);
             }
         }
 
@@ -235,13 +234,13 @@ public class FinanceManager {
             System.out.println("=====Финансовый отчет=====");
             for (FinanceRecord record : records) {
                 System.out.println(record);
-        }
+            }
 
             System.out.println("================================");
             System.out.println("Общий доход: " + income);
             System.out.println("Общие расходы: " + expense);
             System.out.println("Итоговая прибыль: " + result);
-            System.out.println("Продано билетов на сумму: "  + ticketsSold + " на сумму: " + ticketSales);
+            System.out.println("Продано билетов на сумму: " + ticketsSold + " на сумму: " + ticketSales);
             System.out.println("Возвращено билетов на сумму: " + ticketsRefunded + " на сумму: " + ticketRefunds);
             System.out.println("================================");
         }

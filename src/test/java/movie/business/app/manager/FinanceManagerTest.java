@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -28,13 +29,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class FinanceManagerTest {
     private FinanceManager financeManager;
 
-
     @BeforeEach
     void setUp() {
         // Инициализация объектов
         financeManager = new FinanceManager(true);
         financeManager.clearData(false);
     }
+
     @AfterEach
     void tearDown() {
         if (financeManager.isTestMode()) {
@@ -42,6 +43,7 @@ public class FinanceManagerTest {
             deleteTestFile("test_finance_report.pdf");
         }
     }
+
     //  Добавляем метод удаления файла
     private void deleteTestFile(String fileName) {
         Path filePath = Paths.get(System.getProperty("user.dir"), fileName);
@@ -90,19 +92,6 @@ public class FinanceManagerTest {
         financeManager.generateFinanceReport(true);  // просто проверяем, что метод не вызывает ошибок
     }
 
-    // Тестируем экспорт в CSV
-    @Test
-    void testExportToCSV() {
-        // Arrange: подготовка данных с неправильным типом записи
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate date = LocalDate.parse("2025-02-11", formatter); // Преобразуем строку в LocalDate
-
-        FinanceRecord income = new FinanceRecord("1", FinanceType.INCOME, 1000.0, "Salary", date);
-        financeManager.addFinanceRecord(income);
-
-        // Act: экспорт в CSV
-        //TODO financeManager.exportToCSV();  // проверяем, что метод не вызывает ошибок
-    }
     // Параметризованный тест для расчета общих расходов
     @ParameterizedTest
     @CsvSource({
@@ -146,6 +135,7 @@ public class FinanceManagerTest {
                 .sum();
         assertEquals(expectedTotal, financeManager.calculateTotalIncome(), 0.01);
     }
+
     @Test
     void testHasRecords_noRecords() {
         // Arrange
@@ -168,6 +158,7 @@ public class FinanceManagerTest {
         // Assert: метод должен вернуть true, если есть хотя бы одна запись
         assertTrue(hasRecords);
     }
+
     @Test
     void testClearData() {
         // Arrange
@@ -225,6 +216,7 @@ public class FinanceManagerTest {
         // Assert
         assertEquals(300.0, ticketRefunds, 0.01, "Сумма возвратов билетов должна быть правильной.");
     }
+
     @Test
     void testAddFinanceRecord_validRecord() {
         // Arrange
@@ -236,6 +228,7 @@ public class FinanceManagerTest {
         // Assert
         assertEquals(1, financeManager.getAllFinanceRecords().size(), "Запись должна быть добавлена.");
     }
+
     @Test
     void testGenerateFinanceReport_fileOutput() throws IOException {
         System.out.println("TEST MODE: " + financeManager.isTestMode()); // Отладка
@@ -275,6 +268,7 @@ public class FinanceManagerTest {
 
         System.setOut(System.out);
     }
+
     @Test
     void testAddValidFinanceRecord() {
         FinanceRecord record = new FinanceRecord("1", FinanceType.EXPENSE, 200.0, "Groceries", LocalDate.of(2025, 2, 10));
@@ -302,6 +296,7 @@ public class FinanceManagerTest {
 
         assertEquals("Запись с таким ID не найдена.", exception.getMessage());
     }
+
     @Test
     void testAddPremiereBudget_valid() {
         Premiere premiere = new Premiere("1", "Titanic", ZonedDateTime.now(), "Cinema", 100, 1000000);
@@ -314,6 +309,7 @@ public class FinanceManagerTest {
         assertEquals("Бюджет для премьеры: Titanic", record.getDescription());
         assertEquals(budgetToAdd, record.getAmount(), 0.01);
     }
+
     @Test
     void testAddPremiereBudget_invalidAmount() {
         Premiere premiere = new Premiere("2", "Avatar", ZonedDateTime.now(), "Cinema", 100, 1000000);

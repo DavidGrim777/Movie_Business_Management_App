@@ -66,12 +66,13 @@ public class Premiere implements Serializable {
         }
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
-            this.date = ZonedDateTime.parse(date,formatter); // Используем ZonedDateTime для парсинга
+            this.date = ZonedDateTime.parse(date, formatter); // Используем ZonedDateTime для парсинга
         } catch (Exception e) {
             log.warn("Некорректный формат даты. Требуется: {} ", DATE_FORMAT);
             throw new IllegalArgumentException("Ошибка: Некорректный формат даты. Требуется: " + DATE_FORMAT);
         }
     }
+
     // Метод для установки количества билетов
     public void setTicketCount(int ticketCount) {
         if (ticketCount < 0) {
@@ -109,7 +110,7 @@ public class Premiere implements Serializable {
             return;
         }
         guestList.add(guestName); // Добавляем гостя в список
-        System.out.println ("Гость " + guestName + " добавлен в список.");
+        System.out.println("Гость " + guestName + " добавлен в список.");
     }
 
     // Метод для проверки, можем ли мы продать указанное количество билетов
@@ -178,8 +179,8 @@ public class Premiere implements Serializable {
         if (budgetToAdd <= 0) {
             throw new IllegalArgumentException("Бюджет не может быть отрицательным или нулевым.");
         }
-            this.budget += budgetToAdd;  // Добавляем к текущему бюджету
-        }
+        this.budget += budgetToAdd;  // Добавляем к текущему бюджету
+    }
 
     // Метод для добавления отзыва
     public void addReview(String review) {
@@ -188,15 +189,16 @@ public class Premiere implements Serializable {
             System.out.println("Ошибка при добавлении отзыва: отзыв не может быть пустым.");
         } else {
             reviews.add(review); // Добавляем отзыв в список
-            System.out.println ("Отзыв добавлен: " + review);
+            System.out.println("Отзыв добавлен: " + review);
         }
     }
+
     // Генерация отчета о премьере
     public String generateReport() {
         double totalRevenue = ticketSold * ticketPrice; // Примерная стоимость билета $10
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         String formattedDate = date.format(formatter);  // Форматируем дату
-        return  "Отчет о премьере: " + movieTitle + "\n" +
+        return "Отчет о премьере: " + movieTitle + "\n" +
                 "Дата: " + formattedDate + "\n" +
                 "Место проведения: " + location + "\n" +
                 "Продано билетов: " + ticketSold + "\n" +

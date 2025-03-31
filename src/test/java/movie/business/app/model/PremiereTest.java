@@ -42,6 +42,7 @@ public class PremiereTest {
                 "Cinema City", 100, 5000000);
         premiere.setReviews(new ArrayList<>());
     }
+
     @AfterEach
     void tearDown() {
         // Удаляем тестовые файлы после каждого теста
@@ -82,7 +83,7 @@ public class PremiereTest {
     }
 
     @Test
-    void testSaveAndLoadGuests(){
+    void testSaveAndLoadGuests() {
         // Добавляем тестовых гостей
         List<String> guests = Arrays.asList("Иван Иванов", "Мария Петрова");
         premiere.getGuestList().addAll(guests);
@@ -146,7 +147,7 @@ public class PremiereTest {
     @Test
     void testGetLocation() {
         // Тест 1: Корректное местоположение
-        Premiere premiereWithLocation = new Premiere("1", "Titanic", ZonedDateTime.now(), "Cinema City", 100,5000000);
+        Premiere premiereWithLocation = new Premiere("1", "Titanic", ZonedDateTime.now(), "Cinema City", 100, 5000000);
         assertEquals("Cinema City", premiereWithLocation.getLocation(), "Метод getLocation() должен возвращать указанное местоположение");
 
         // Тест 2: Пустое местоположение
@@ -154,7 +155,7 @@ public class PremiereTest {
         assertEquals("Местоположение не указано", premiereWithEmptyLocation.getLocation(), "Метод getLocation() должен корректно обрабатывать пустое местоположение");
 
         // Тест 3: null местоположение
-        Premiere premiereWithNullLocation = new Premiere("3", "Inception", ZonedDateTime.now(), null, 200,2000000);
+        Premiere premiereWithNullLocation = new Premiere("3", "Inception", ZonedDateTime.now(), null, 200, 2000000);
         assertEquals("Местоположение не указано", premiereWithNullLocation.getLocation(), "Метод getLocation() должен корректно обрабатывать null местоположение");
     }
 
@@ -238,7 +239,7 @@ public class PremiereTest {
 
         // Act: попытка установить отрицательное количество билетов
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-            premiere.setTicketCount(-1));
+                premiere.setTicketCount(-1));
 
 
         // Assert: проверка, что выбрасывается исключение с ожидаемым сообщением
@@ -382,7 +383,7 @@ public class PremiereTest {
         } else {
             // Проверяем, что выбрасывается исключение для неправильных значений
             assertThrows(IllegalArgumentException.class, () ->
-                premiere.returnTickets(ticketsToReturn, premiere.getTicketSold()), "Ошибка при возврате билетов");
+                    premiere.returnTickets(ticketsToReturn, premiere.getTicketSold()), "Ошибка при возврате билетов");
         }
     }
 
@@ -409,7 +410,7 @@ public class PremiereTest {
         } else {
             // Act & Assert для нулевого или отрицательного бюджета (должно быть исключение)
             IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                premiere.addBudget(budget));
+                    premiere.addBudget(budget));
 
             assertEquals("Бюджет не может быть отрицательным или нулевым.", exception.getMessage());
         }
