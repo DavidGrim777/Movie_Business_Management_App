@@ -37,6 +37,7 @@ public class Main {
         PremiereManager premiereManager = new PremiereManager();
         FinanceManager financeManager = new FinanceManager();
         PremiereRepository premiereRepository = new PremiereRepository();
+        FinanceRepository financeRepository = new FinanceRepository();
 
         Scanner scanner = new Scanner(System.in);
 
@@ -364,11 +365,12 @@ public class Main {
                             }
                         }
                     }
-
                     financeManager.addFinanceRecord(
                             new FinanceRecord(UUID.randomUUID().toString().substring(0, 5), type, amount, description, date)
                     );
                     System.out.println("Финансовая запись успешно добавлена.");
+                    // Сохранение финансовых записей в файл
+                    financeRepository.saveRecords(financeManager.getFinanceRecords(),false);
                     break;
 
                 case 12:
@@ -417,11 +419,15 @@ public class Main {
                             // Запись в финансовый менеджер
                             financeManager.addFinanceRecord(financeRecord);
 
-                            //  Сохраняем премьеру с обновлёнными билетами
+                            //  Сохраняем премьеру с обновлёнными билетами в файл premieres.txt
                             premiereRepository.savePremieresToFile(premiereManager.getPremiereMap(), false);
 
                             // Экспортируем финансы в CSV после продажи билетов
                             financeManager.generateFinanceReport(false);
+
+                            //Сохранияем в файл finance_report.csv
+                            financeRepository.saveRecords(financeManager.getFinanceRecords(),false);
+
                         }else{
                             System.out.println("Недостаточно билетов для продажи.");
 
@@ -465,11 +471,16 @@ public class Main {
                                     LocalDate.now()
                             ));
 
-                             //  Сохраняем обновлённую премьеру
+                             //  Сохраняем обновлённую премьеру в файл premieres.txt
                             premiereRepository.savePremieresToFile(premiereManager.getPremiereMap(), false);
 
                             // Экспортируем финансы в CSV после возврата билетов
                             financeManager.generateFinanceReport(true);
+
+                            //Сохранияем в файл finance_report.csv
+                            financeRepository.saveRecords(financeManager.getFinanceRecords(),false);
+
+
                         } catch (IllegalArgumentException e) {
                             // Если возникла ошибка (например, возвращаем больше билетов, чем было продано), выводим сообщение
                             System.out.println("Ошибка: " + e.getMessage());
@@ -482,11 +493,8 @@ public class Main {
                 case 15:// Генерация отчета
                     if (financeManager.hasRecords()) {
                         financeManager.generateFinanceReport(true);
-
-                        // Генерация PDF-отчета из тех же данных
-                        List<FinanceRecord> records = financeManager.getAllFinanceRecords();
-                        new FinanceRepository().generatePDFReport(records);
-                    } else {
+                    }
+                    else {
                         System.out.println("Отчет не может быть сгенерирован, так как нет записей для анализа.");
                     }
                     break;

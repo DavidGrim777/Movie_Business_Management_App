@@ -22,32 +22,40 @@ import java.util.UUID;
 public class FinanceManager {
 
     private final List<FinanceRecord> financeRecords;
-    private final FinanceRepository repository;
+    private final FinanceRepository repository = new FinanceRepository();
     private static final String FILE_NAME = "finance_records.csv";
+    private final boolean testMode;
 
-    public FinanceManager() {
+
+    public FinanceManager(boolean testMode) {
         this.financeRecords = new ArrayList<>();
-        this.repository = new FinanceRepository();
+        this.testMode = testMode;
         loadFinanceRecordsFromFile();  // Загружаем данные из файла при создании объекта
     }
 
-    public FinanceManager(FinanceRepository repository) {
-        this.financeRecords = new ArrayList<>();
-        this.repository = repository;
-        loadFinanceRecordsFromFile();
+    // Конструктор по умолчанию (обычный режим)
+    public FinanceManager() {
+        this(false);
     }
-    // Метод для очистки данных (если нужно сбросить все записи)
+
+    // Метод для очистки данных (если нужно сбросить все записи используется в тестах)
     public void clearData(boolean deleteFile) {
         financeRecords.clear();
         if (deleteFile) {
+            String fileName;
+            if (testMode) {
+                fileName = "test_finance_records.csv";
+            } else {
+                fileName = "finance_records.csv";
+            }
             try {
-                Files.deleteIfExists(Paths.get(FILE_NAME));
-                log.info("Файл {} успешно удалён.", FILE_NAME);
+                Files.deleteIfExists(Paths.get(fileName));
+                log.info("Файл {} успешно удалён.", fileName);
             } catch (IOException e) {
-                log.error("Ошибка при удалении файла{}: {}", FILE_NAME, e.getMessage());
+                log.error("Ошибка при удалении файла{}: {}", fileName, e.getMessage());
             }
         }
-        repository.saveRecords(financeRecords,false);
+        saveFinanceRecordsToFile();
     }
 
     // Метод для добавления финансовой записи
@@ -77,13 +85,22 @@ public class FinanceManager {
 
         financeRecords.add(record);
         log.info("Финансовая запись добавлена: {} ", record);
-        repository.saveRecords(financeRecords, false);
+        saveFinanceRecordsToFile();
+    }
+
+    public void saveFinanceRecordsToFile() {
+        repository.saveRecords(financeRecords, testMode);
+    }
+
+    public void loadFinanceRecordsFromFile() {
+        financeRecords.clear();
+        financeRecords.addAll(repository.loadRecords(testMode));
     }
 
     // Метод для проверки наличия записей
     public boolean hasRecords() {
         if (financeRecords.isEmpty()) {
-            financeRecords.addAll(repository.loadRecords()); //  Загружаем из файла при вызове
+            financeRecords.addAll(repository.loadRecords(testMode)); //  Загружаем из файла при вызове
         }
         return !financeRecords.isEmpty();  // Возвращаем true, если список не пустой
     }
@@ -101,7 +118,7 @@ public class FinanceManager {
         if (recordToRemove != null) {
             financeRecords.remove(recordToRemove);
             log.info("Финансовая запись с ID {} удалена. ", recordId);
-            repository.saveRecords(financeRecords, false);
+            saveFinanceRecordsToFile();
         } else {
             log.warn("Ошибка: Запись с ID {} не найдена.", recordId);
             throw new IllegalArgumentException("Запись с таким ID не найдена.");
@@ -189,7 +206,7 @@ public class FinanceManager {
             return;
         }
 
-        List<FinanceRecord> records = repository.loadRecords(); // Загружаем из файла для отчета
+        List<FinanceRecord> records = repository.loadRecords(false); // Загружаем из файла для отчета
 
         double income = calculateTotalIncome();
         double expense = calculateTotalExpenses();
@@ -211,7 +228,7 @@ public class FinanceManager {
             }
         }
 
-        repository.saveRecords(financeRecords,false);
+        saveFinanceRecordsToFile();
         repository.generatePDFReport(records);
 
         if (printToConsole) {
@@ -232,8 +249,8 @@ public class FinanceManager {
         System.out.println("Финансовый отчет успешно сохранен в " + FILE_NAME);
     }
 
-    public void loadFinanceRecordsFromFile() {
+    // Метод только для тестов — очищает список, но не файл
+    public void clearRecordsInMemory() {
         financeRecords.clear();
-        financeRecords.addAll(repository.loadRecords());
     }
 }
