@@ -1,5 +1,8 @@
 package movie.business.app.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum FinanceType {
     INCOME ("Доход"),             // Доходы от проката
     CREDIT("Кредит"),             // Кредиты банка
@@ -15,7 +18,4 @@ public enum FinanceType {
         this.category = category;
     }
 
-    public String getCategory() {
-        return category;
-    }
 }
