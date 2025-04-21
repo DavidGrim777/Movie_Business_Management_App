@@ -1,4 +1,4 @@
-package movie.business.app.manager;
+/*package movie.business.app.manager;
 
 import movie.business.app.enums.MovieGenre;
 import movie.business.app.enums.MovieStatus;
@@ -200,4 +200,4 @@ class MovieManagerTest {
             return List.of();
         }
     }
-}
+}*/

@@ -1,6 +1,7 @@
 package movie.business.app.service;
 
 import lombok.extern.slf4j.Slf4j;
+import movie.business.app.enums.ContractStatus;
 import movie.business.app.enums.FinanceType;
 import movie.business.app.enums.MovieGenre;
 import movie.business.app.enums.MovieStatus;
@@ -12,8 +13,7 @@ import movie.business.app.model.Contract;
 import movie.business.app.model.FinanceRecord;
 import movie.business.app.model.Movie;
 import movie.business.app.model.Premiere;
-import movie.business.app.repository.FinanceRepository;
-import movie.business.app.repository.PremiereRepository;
+import movie.business.app.repository.*;
 import movie.business.app.util.DateUtils;
 
 import java.time.LocalDate;
@@ -32,8 +32,10 @@ import java.util.UUID;
 @Slf4j
 public class Main {
     public static void main(String[] args) {
-        MovieManager movieManager = new MovieManager();
-        ContractManager contractManager = new ContractManager();
+        MovieRepository movieRepository = new InMemoryMovieRepositoryImpl();
+        MovieManager movieManager = new MovieManager(movieRepository);
+        ContractRepository contractRepository = new InMemoryContractRepositoryImpl();
+        ContractManager contractManager = new ContractManager(contractRepository);
         PremiereManager premiereManager = new PremiereManager();
         FinanceManager financeManager = new FinanceManager();
         PremiereRepository premiereRepository = new PremiereRepository();
@@ -75,6 +77,10 @@ public class Main {
 
             switch (choice) {
                 case 1:
+                    movieManager.createMovie(scanner);
+                    break;
+
+                /*case 1:
                     String movieId = UUID.randomUUID().toString().substring(0, 5); // Генерация уникального ID фильма
                     String title;
                     do {
@@ -107,11 +113,12 @@ public class Main {
                         }
                     }
 
-                    Movie movie = new Movie(movieId, title, status, genre);
+                    Movie movie = new Movie(movieId, title, genre, status);
                     movieManager.addMovie(movie);
                     System.out.println("Фильм добавлен: " + title + " genre: " + genre);
                     movieManager.saveMovies();
-                    break;
+                    break;*/
+
 
                 case 2:
                     System.out.print("Введите ID фильма для удаления: ");
@@ -126,6 +133,10 @@ public class Main {
                     break;
 
                 case 4:
+                    contractManager.createContract(scanner);
+                    break;
+
+                /*case 4:
                     System.out.print("Введите ID контракта: ");
                     String contractId = scanner.nextLine().trim();
                     System.out.print("Введите имя: ");
@@ -139,8 +150,26 @@ public class Main {
                     System.out.print("Введите гонорар: ");
                     double salary = scanner.nextDouble();
                     scanner.nextLine();
-                    contractManager.addContract(new Contract(contractId, personName, role, startDate, endDate, salary));
-                    break;
+
+                    // Выбор статуса
+                    System.out.println("Выберите статус контракта:");
+                    for (ContractStatus s : ContractStatus.values()) {
+                        System.out.println("- " + s.name());
+                    }
+
+                    ContractStatus contractStatus = null;
+                    while (contractStatus == null) {
+                        System.out.print("Введите статус (точно как написано выше): ");
+                        String inputStatus = scanner.nextLine().trim().toUpperCase();
+                        try {
+                            contractStatus = ContractStatus.valueOf(inputStatus);
+                        } catch (IllegalArgumentException e) {
+                            System.out.println("Некорректный статус. Повторите ввод.");
+                        }
+                    }
+
+                    contractManager.addContract(new Contract(contractId, personName, role, startDate, endDate, salary, contractStatus));
+                   */
 
                 case 5:
                     System.out.print("Введите ID контракта для удаления: ");
