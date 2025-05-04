@@ -13,12 +13,10 @@ import java.util.*;
 @Slf4j
 public class ContractManager {
 
-    // Список контрактов
-    private List<Contract> contracts;
-
+    private final ContractRepository contractRepository;
     // Инициализация списка контрактов
     public ContractManager(ContractRepository contractRepository) {
-        this.contracts = new ArrayList<>();
+        this.contractRepository = contractRepository;
     }
 
     // Метод для добавления нового контракта
@@ -27,7 +25,7 @@ public class ContractManager {
             log.warn("Попытка добавить пустым контракт.");
             return;
         }
-        contracts.add(contract);
+        contractRepository.addContract(contract);
         System.out.println("Контракт добавлен: " + contract.getId());
         log.info("Контракт добавлен: {}", contract.getId());
     }
@@ -38,8 +36,9 @@ public class ContractManager {
             log.warn("Попытка удалить контракт с пустым ID.");
             return;
         }
-        boolean remoed = contracts.removeIf(contract -> contract.getId().equals(contractId));
-        if (remoed) {
+        Optional<Contract> found = contractRepository.findById(contractId);
+        if (found.isPresent()) {
+            contractRepository.deleteById(contractId);
             System.out.println("Контракт удалён: " + contractId);
             log.info("Контракт удалён: {}", contractId);
         } else {
@@ -54,18 +53,19 @@ public class ContractManager {
             log.warn("Попытка найти контракт с пустым ID.");
             return;
         }
-        for (Contract contract : contracts) {
-            if (contract.getId().equals(contractId)) {
-                System.out.println("Контракт найден: " + contract);
-                return;
-            }
-        }
+        Optional<Contract> optionalContract = contractRepository.findById(contractId);
+        if (optionalContract.isPresent()) {
+            Contract contract = optionalContract.get();
+            System.out.println("Контракт найден: " + contract);
+        } else {
         System.out.println("Контракт с ID " + contractId + " не найден.");
         log.warn("Контракт с ID {} не найден.", contractId);
+    }
     }
 
     // Метод для вывода всех контрактов
     public void printAllContracts() {
+        List<Contract> contracts = contractRepository.findAll();
         if (contracts.isEmpty()) {
             System.out.println("Список контрактов пуст.");
             log.error("Список контрактов пуст.");
@@ -96,7 +96,7 @@ public class ContractManager {
 
     // Метод для обновления статусов всех контрактов
     public void updateAllContractStatuses() {
-        for (Contract contract : contracts) {
+        for (Contract contract : contractRepository.findAll()) {
             if (contract.getEndDate().isBefore(LocalDate.now())) {
                 if (contract.getStatus() != ContractStatus.COMPLETED) {
                     contract.setStatus(ContractStatus.COMPLETED);
@@ -112,7 +112,7 @@ public class ContractManager {
     }
 
     public void createContract(Scanner scanner) {
-        String contractId = UUID.randomUUID().toString().substring(0, 5);
+        String contractId = UUID.randomUUID().toString().substring(0, 16);
 
         String personName;
         do {
