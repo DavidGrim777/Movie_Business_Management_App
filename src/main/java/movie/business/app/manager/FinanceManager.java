@@ -6,6 +6,7 @@ import movie.business.app.enums.FinanceType;
 import movie.business.app.model.FinanceRecord;
 import movie.business.app.model.Premiere;
 import movie.business.app.repository.FinanceRepository;
+import movie.business.app.repository.InMemoryFinanceRepositoryImpl;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,6 +16,8 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Scanner;
 import java.util.UUID;
 
 @Slf4j
@@ -22,7 +25,7 @@ import java.util.UUID;
 public class FinanceManager {
 
     private final List<FinanceRecord> financeRecords;
-    private final FinanceRepository repository = new FinanceRepository();
+    private final FinanceRepository repository = new InMemoryFinanceRepositoryImpl();
     private static final String FILE_NAME = "finance_records.csv";
     private final boolean testMode;
 
@@ -35,6 +38,71 @@ public class FinanceManager {
     // Конструктор по умолчанию (обычный режим)
     public FinanceManager() {
         this(false);
+    }
+
+    public void createFinanceRecord(Scanner scanner, PremiereManager premiereManager) {
+        FinanceType type = null;
+        while (type == null) {
+            System.out.print("Введите тип записи (INCOME, CREDIT, SPONSORSHIP, EXPENSE, CAST, ADVERTISING, BUDGET, OTHER): ");
+            String input = scanner.nextLine().trim().toUpperCase();
+            try {
+                type = FinanceType.valueOf(input);
+            } catch (IllegalArgumentException e) {
+                System.out.println("Неверный тип. Попробуйте снова.");
+            }
+        }
+
+        double amount = -1;
+        while (amount <= 0) {
+            System.out.print("Введите сумму: ");
+            try {
+                amount = Double.parseDouble(scanner.nextLine());
+                if (amount <= 0) System.out.println("Сумма должна быть положительной.");
+            } catch (NumberFormatException e) {
+                System.out.println("Некорректное число. Попробуйте снова.");
+            }
+        }
+
+        System.out.print("Введите описание: ");
+        String description = scanner.nextLine().trim();
+        if (description.isEmpty()) description = "Без описания";
+
+        System.out.print("Введите ID премьеры (если не связано, нажмите Enter): ");
+        String id = scanner.nextLine().trim();
+        if (!id.isEmpty()) {
+            Optional<Premiere> optionalPremiere = premiereManager.findPremiereById(id);
+            if (optionalPremiere.isPresent()) {
+                Premiere linked = optionalPremiere.get();
+                description = "Премьера: " + linked.getMovieTitle() + ". " + description;
+            } else {
+                System.out.println("Премьера не найдена. Запись будет без связи.");
+            }
+        }
+
+        LocalDate date = null;
+        while (date == null) {
+            System.out.print("Введите дату (dd.MM.yyyy) или нажмите Enter для текущей даты: ");
+            String input = scanner.nextLine().trim();
+            if (input.isEmpty()) {
+                date = LocalDate.now();
+            } else {
+                try {
+                    date = LocalDate.parse(input, java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+                } catch (Exception e) {
+                    System.out.println("Неверный формат даты.");
+                }
+            }
+        }
+
+        FinanceRecord record = new FinanceRecord(
+                UUID.randomUUID().toString().substring(0, 5),
+                type,
+                amount,
+                description,
+                date
+        );
+        addFinanceRecord(record);
+        System.out.println("Финансовая запись добавлена.");
     }
 
     // Метод для очистки данных (если нужно сбросить все записи используется в тестах)
@@ -252,4 +320,80 @@ public class FinanceManager {
     public void clearRecordsInMemory() {
         financeRecords.clear();
     }
+
+    public void sellTickets(Scanner scanner, PremiereManager premiereManager) {
+        System.out.print("Введите ID премьеры для продажи билетов: ");
+        String premiereId = scanner.nextLine();
+        Optional<Premiere> optionalPremiere = premiereManager.findPremiereById(premiereId);
+        if (optionalPremiere.isEmpty()) {
+            System.out.println("Премьера не найдена.");
+            return;
+        }
+        Premiere premiere = optionalPremiere.get();
+
+        System.out.print("Введите количество билетов для продажи: ");
+        int count = 0;
+        try {
+            count = Integer.parseInt(scanner.nextLine());
+        } catch (NumberFormatException e) {
+            System.out.println("Ошибка: Введите корректное число.");
+            return;
+        }
+
+        if (!premiere.sellTickets(count)) {
+            System.out.println("Недостаточно билетов в наличии.");
+            return;
+        }
+
+        double totalAmount = premiere.getTicketPrice() * count;
+        FinanceRecord record = new FinanceRecord(
+                UUID.randomUUID().toString().substring(0, 5),
+                FinanceType.INCOME,
+                totalAmount,
+                "Продажа билетов на премьеру: " + premiere.getMovieTitle(),
+                LocalDate.now()
+        );
+
+        addFinanceRecord(record);
+        premiereManager.savePremieresToFile();
+        saveFinanceRecordsToFile();
+        System.out.println("Билеты успешно проданы. Доход: " + totalAmount);
+    }
+
+    public void returnTickets(Scanner scanner, PremiereManager premiereManager) {
+        System.out.print("Введите ID премьеры для возврата билетов: ");
+        String premiereId = scanner.nextLine().trim();
+        Optional<Premiere> optionalPremiere = premiereManager.findPremiereById(premiereId);
+        if (optionalPremiere.isEmpty()) {
+            System.out.println("Премьера с таким ID не найдена.");
+            return;
+        }
+        Premiere premiere = optionalPremiere.get();
+
+        System.out.print("Введите количество билетов для возврата: ");
+        int ticketCount;
+        try {
+            ticketCount = Integer.parseInt(scanner.nextLine().trim());
+        } catch (NumberFormatException e) {
+            System.out.println("Ошибка: введите корректное число.");
+            return;
+        }
+
+        try {
+            premiere.returnTickets(ticketCount, premiere.getTicketSold());
+            double refundAmount = ticketCount * premiere.getTicketPrice();
+            addFinanceRecord(new FinanceRecord(
+                    UUID.randomUUID().toString().substring(0, 5),
+                    FinanceType.EXPENSE,
+                    refundAmount,
+                    "Возврат билетов на премьеру: " + premiere.getMovieTitle(),
+                    LocalDate.now()
+            ));
+            premiereManager.savePremieresToFile();
+            System.out.println("Возврат выполнен на сумму: " + refundAmount);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Ошибка: " + e.getMessage());
+        }
+    }
 }
+

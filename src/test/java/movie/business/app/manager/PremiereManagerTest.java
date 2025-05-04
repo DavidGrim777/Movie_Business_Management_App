@@ -1,6 +1,7 @@
 package movie.business.app.manager;
 
 import movie.business.app.model.Premiere;
+import movie.business.app.repository.InMemoryPremiereRepositoryImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -24,8 +26,8 @@ public class PremiereManagerTest {
 
     @BeforeEach
     void setUp() {
-        premiereManager = new PremiereManager(true);
-        premiereManager.getPremiereMap().clear();
+        premiereManager = new PremiereManager(new InMemoryPremiereRepositoryImpl(), true);
+        premiereManager.clearPremieres();
         // Используем правильный формат для даты с учетом часового пояса
         ZonedDateTime date = ZonedDateTime.of(2025, 2, 2, 10, 0, 0, 0, java.time.ZoneId.of("UTC+03:00"));
         premiere = new Premiere("1", "Titanic", date, "IMAX", 150, 2000000);
@@ -54,9 +56,11 @@ public class PremiereManagerTest {
         // Act
         premiereManager.addPremiere(premiere);
 
+        Optional<Premiere> optional = premiereManager.findPremiereById("1");
+
         // Assert: Проверка, что премьера была добавлена
-        assertEquals(1, premiereManager.getPremiereMap().size(), "Количество премьер должно быть 1.");
-        assertTrue(premiereManager.getPremiereMap().containsKey("1"), "Премьера с ID 1 должна быть добавлена.");
+        assertEquals(1, premiereManager.getPremiereCount(), "Количество премьер должно быть 1.");
+        assertTrue(optional.isPresent(), "Премьера с ID 1 должна быть добавлена.");
     }
 
     @Test
@@ -85,11 +89,11 @@ public class PremiereManagerTest {
         premiereManager.addPremiere(premiere);
 
         // Act: Поиск премьеры по ID
-        Premiere foundPremiere = premiereManager.findPremiereById("1");
+        Optional<Premiere> found = premiereManager.findPremiereById("1");
 
         // Assert: Проверка, что премьера найдена
-        assertNotNull(foundPremiere, "Премьера с ID 1 должна быть найдена.");
-        assertEquals("Titanic", foundPremiere.getMovieTitle(), "Название фильма должно быть Titanic.");
+        assertNotNull(found.isPresent(), "Премьера с ID 1 должна быть найдена.");
+        assertEquals("Titanic", found.get().getMovieTitle(), "Название фильма должно быть Titanic.");
     }
 
     @Test
@@ -98,10 +102,10 @@ public class PremiereManagerTest {
         premiereManager.addPremiere(premiere);
 
         // Act: Поиск премьеры с несуществующим ID
-        Premiere foundPremiere = premiereManager.findPremiereById("999");
+        Optional<Premiere> found = premiereManager.findPremiereById("999");
 
         // Assert: Проверка, что премьера не найдена
-        assertNull(foundPremiere, "Премьера с ID 999 не должна быть найдена.");
+        assertNull(found.isEmpty(), "Премьера с ID 999 не должна быть найдена.");
     }
 
     @Test

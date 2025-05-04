@@ -1,7 +1,7 @@
 package movie.business.app.model;
 
 import lombok.extern.slf4j.Slf4j;
-import movie.business.app.repository.PremiereRepository;
+import movie.business.app.repository.InMemoryPremiereRepositoryImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -65,7 +65,7 @@ public class PremiereTest {
 
     @Test
     void testSaveAndLoadReviews() throws IOException {
-        PremiereRepository repository = new PremiereRepository();
+        InMemoryPremiereRepositoryImpl repository = new InMemoryPremiereRepositoryImpl();
         Path filePath = Path.of(testId + "_testReviews.txt");
         Files.deleteIfExists(filePath);
 
@@ -89,7 +89,7 @@ public class PremiereTest {
         premiere.getGuestList().addAll(guests);
 
         // Сохраняем гостей в файл (важно!)
-        PremiereRepository repository = new PremiereRepository();
+        InMemoryPremiereRepositoryImpl repository = new InMemoryPremiereRepositoryImpl();
         repository.saveGuestsToFile(premiere, true);
 
         // Проверяем, создался ли файл

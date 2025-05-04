@@ -1,45 +1,29 @@
 package movie.business.app.service;
 
 import lombok.extern.slf4j.Slf4j;
-import movie.business.app.enums.ContractStatus;
-import movie.business.app.enums.FinanceType;
-import movie.business.app.enums.MovieGenre;
-import movie.business.app.enums.MovieStatus;
 import movie.business.app.manager.ContractManager;
 import movie.business.app.manager.FinanceManager;
 import movie.business.app.manager.MovieManager;
 import movie.business.app.manager.PremiereManager;
-import movie.business.app.model.Contract;
-import movie.business.app.model.FinanceRecord;
-import movie.business.app.model.Movie;
-import movie.business.app.model.Premiere;
 import movie.business.app.repository.*;
-import movie.business.app.util.DateUtils;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.InputMismatchException;
-import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
-import java.util.UUID;
+
 
 @Slf4j
 public class Main {
     public static void main(String[] args) {
         MovieRepository movieRepository = new InMemoryMovieRepositoryImpl();
         MovieManager movieManager = new MovieManager(movieRepository);
+
         ContractRepository contractRepository = new InMemoryContractRepositoryImpl();
         ContractManager contractManager = new ContractManager(contractRepository);
-        PremiereManager premiereManager = new PremiereManager();
+
+        PremiereRepository premiereRepository = new InMemoryPremiereRepositoryImpl();
+        PremiereManager premiereManager = new PremiereManager(premiereRepository, false);
+
+        FinanceRepository financeRepository = new InMemoryFinanceRepositoryImpl();
         FinanceManager financeManager = new FinanceManager();
-        PremiereRepository premiereRepository = new PremiereRepository();
-        FinanceRepository financeRepository = new FinanceRepository();
 
         Scanner scanner = new Scanner(System.in);
 
@@ -80,46 +64,6 @@ public class Main {
                     movieManager.createMovie(scanner);
                     break;
 
-                /*case 1:
-                    String movieId = UUID.randomUUID().toString().substring(0, 5); // Генерация уникального ID фильма
-                    String title;
-                    do {
-                        System.out.print("Введите название фильма: ");
-                        title = scanner.nextLine().trim();
-                        if (title.isEmpty()) {
-                            System.out.println("Ошибка: Название фильма не может быть пустым.");
-                        }
-                    } while (title.isEmpty());
-
-                    MovieStatus status = null;
-                    while (status == null) {
-                        System.out.print("Введите статус фильма (PLANNED, IN_PROGRESS, COMPLETED): ");
-                        String statusInput = scanner.nextLine().trim().toUpperCase();
-                        try {
-                            status = MovieStatus.valueOf(statusInput);
-                        } catch (IllegalArgumentException exception) {
-                            log.error("Ошибка: Некорректный статус фильма. Попробуйте снова.");
-                        }
-                    }
-                    MovieGenre genre = null;
-                    while (genre == null) {
-                        System.out.print("Введите жанр фильма (ACTION, DRAMA, COMEDY, HORROR, FANTASY, THRILLER, ROMANCE, " +
-                                "DOCUMENTARY, ANIMATION, ADVENTURE, CRIME, MYSTERY, FAMILY, WAR, MUSICAL): ");
-                        String genreInput = scanner.nextLine().trim().toUpperCase();
-                        try {
-                            genre = MovieGenre.valueOf(genreInput);
-                        } catch (IllegalArgumentException exception) {
-                            log.error("Ошибка: введён некорректный жанр.");
-                        }
-                    }
-
-                    Movie movie = new Movie(movieId, title, genre, status);
-                    movieManager.addMovie(movie);
-                    System.out.println("Фильм добавлен: " + title + " genre: " + genre);
-                    movieManager.saveMovies();
-                    break;*/
-
-
                 case 2:
                     System.out.print("Введите ID фильма для удаления: ");
                     String movieToRemoveId = scanner.nextLine().trim();
@@ -136,41 +80,6 @@ public class Main {
                     contractManager.createContract(scanner);
                     break;
 
-                /*case 4:
-                    System.out.print("Введите ID контракта: ");
-                    String contractId = scanner.nextLine().trim();
-                    System.out.print("Введите имя: ");
-                    String personName = scanner.nextLine().trim();
-                    System.out.print("Введите роль: ");
-                    String role = scanner.nextLine().trim();
-                    System.out.print("Введите дату начала (yyyy-MM-dd): ");
-                    LocalDate startDate = LocalDate.parse(scanner.nextLine().trim());
-                    System.out.print("Введите дату окончания (yyyy-MM-dd): ");
-                    LocalDate endDate = LocalDate.parse(scanner.nextLine().trim());
-                    System.out.print("Введите гонорар: ");
-                    double salary = scanner.nextDouble();
-                    scanner.nextLine();
-
-                    // Выбор статуса
-                    System.out.println("Выберите статус контракта:");
-                    for (ContractStatus s : ContractStatus.values()) {
-                        System.out.println("- " + s.name());
-                    }
-
-                    ContractStatus contractStatus = null;
-                    while (contractStatus == null) {
-                        System.out.print("Введите статус (точно как написано выше): ");
-                        String inputStatus = scanner.nextLine().trim().toUpperCase();
-                        try {
-                            contractStatus = ContractStatus.valueOf(inputStatus);
-                        } catch (IllegalArgumentException e) {
-                            System.out.println("Некорректный статус. Повторите ввод.");
-                        }
-                    }
-
-                    contractManager.addContract(new Contract(contractId, personName, role, startDate, endDate, salary, contractStatus));
-                   */
-
                 case 5:
                     System.out.print("Введите ID контракта для удаления: ");
                     String contractIdToRemove = scanner.nextLine().trim();
@@ -182,7 +91,9 @@ public class Main {
                     break;
 
                 case 7:
-                    System.out.print("Введите ID премьеры: ");
+                    premiereManager.createPremiere(scanner);
+
+                    /*System.out.print("Введите ID премьеры: ");
                     String premiereId = scanner.nextLine();
                     if (premiereId == null || premiereId.trim().isEmpty()) {
                         System.out.println("Ошибка: ID не может быть пустым!");
@@ -263,11 +174,12 @@ public class Main {
                     Premiere newPremiere = new Premiere(premiereId, premiereTitle, premiereDate, premierePlace, ticketCount, budget);
                     premiereManager.addPremiere(newPremiere);
                     // Вызываем сохранение премьер в файл через репозиторий:
-                    premiereRepository.savePremieresToFile(premiereManager.getPremiereMap(), false);
+                    premiereRepository.savePremieresToFile(premiereManager.getPremiereMap(), false); */
                     break;
 
                 case 8: // Добавление гостя на премьеру
-                    System.out.print("Введите ID премьеры для добавления гостя: ");
+                    premiereManager.addGuestToPremiere(scanner);
+                    /*System.out.print("Введите ID премьеры для добавления гостя: ");
                     String premiereIdForGuest = scanner.nextLine();
                     System.out.print("Введите имя гостя: ");
                     String guestName = scanner.nextLine();
@@ -295,7 +207,7 @@ public class Main {
                         }
                     } else {
                         System.out.println("Гость не достиг 18 лет. Добавление невозможно.");
-                    }
+                    } */
                     break;
 
                 case 9:
@@ -305,7 +217,8 @@ public class Main {
                     break;
 
                 case 10:
-                    Map<String, Premiere> premiereMap = premiereManager.getPremiereMap();
+                    premiereManager.printAllPremieresWithGuests();
+                    /*Map<String, Premiere> premiereMap = premiereManager.getPremiereMap();
                     if (premiereMap.isEmpty()) {
                         System.out.println("Нет доступных премьер.");
                     } else {
@@ -330,11 +243,12 @@ public class Main {
                             System.out.println(); // Пустая строка для разделения премьер
                         }
                         premiereRepository.savePremieresToFile(premiereMap, false);
-                    }
+                    } */
                     break;
 
                 case 11:
-                    FinanceType type = null;
+                    financeManager.createFinanceRecord(scanner, premiereManager);
+                    /*FinanceType type = null;
                     while (type == null) {
                         System.out.print("Введите тип записи (INCOME, CREDIT, SPONSORSHIP, EXPENSE, CAST, ADVERTISING, BUDGET, OTHER  ): ");
                         String typeInput = scanner.nextLine().trim().toUpperCase();
@@ -399,7 +313,7 @@ public class Main {
                     );
                     System.out.println("Финансовая запись успешно добавлена.");
                     // Сохранение финансовых записей в файл
-                    financeRepository.saveRecords(financeManager.getFinanceRecords(), false);
+                    financeRepository.saveRecords(financeManager.getFinanceRecords(), false); */
                     break;
 
                 case 12:
@@ -414,7 +328,8 @@ public class Main {
                     break;
 
                 case 13: // Продажа билетов на премьеру
-                    System.out.print("Введите ID премьеры для продажи билетов: ");
+                    financeManager.sellTickets(scanner, premiereManager);
+                    /*System.out.print("Введите ID премьеры для продажи билетов: ");
                     String premiereIdForTickets = scanner.nextLine(); // Вводим ID премьеры
                     System.out.print("Введите количество билетов для продажи: ");
                     while (!scanner.hasNextInt()) {
@@ -463,11 +378,12 @@ public class Main {
                         }
                     } else {
                         System.out.println("Премьера с таким ID не найдена.");
-                    }
+                    } */
                     break;
 
                 case 14: // Возврат билетов
-                    System.out.print("Введите ID премьеры для возврата билетов: ");
+                    financeManager.returnTickets(scanner, premiereManager);
+                    /*System.out.print("Введите ID премьеры для возврата билетов: ");
                     String premiereIdForReturn = scanner.nextLine();
                     System.out.print("Введите количество билетов для возврата: ");
 
@@ -516,7 +432,7 @@ public class Main {
                         }
                     } else {
                         System.out.println("Премьера с таким ID не найдена.");
-                    }
+                    } */
                     break;
 
                 case 15:// Генерация отчета
@@ -529,7 +445,8 @@ public class Main {
 
 
                 case 16: // Добавление отзыва
-                    System.out.print("Введите ID фильма для отзыва: ");
+                    premiereManager.addReviewToPremiere(scanner);
+                    /*System.out.print("Введите ID фильма для отзыва: ");
                     String premiereIdForReview = scanner.nextLine();
 
                     Premiere premiereForReview = premiereManager.findPremiereById(premiereIdForReview);
@@ -555,11 +472,12 @@ public class Main {
                         }
                     } else {
                         System.out.println("Премьера с таким ID не найдена.");
-                    }
+                    } */
                     break;
 
                 case 17:
-                    System.out.print("Введите ID премьеры для просмотра отзывов: ");
+                    premiereManager.printReviewsForPremiere(scanner);
+                    /*System.out.print("Введите ID премьеры для просмотра отзывов: ");
                     String premiereIdForReviews = scanner.nextLine();
                     // Ищем премьеру в менеджере
                     Premiere premiereToShowReviews = premiereManager.findPremiereById(premiereIdForReviews);
@@ -582,7 +500,7 @@ public class Main {
                         }
                     } else {
                         System.out.println("Премьера с таким ID не найдена.");
-                    }
+                    } */
                     break;
 
                 case 18:
