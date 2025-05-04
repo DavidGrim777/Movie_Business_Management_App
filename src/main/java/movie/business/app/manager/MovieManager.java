@@ -32,7 +32,7 @@ public class MovieManager {
             log.warn("Попытка добавить null-фильм.");
             return;
         }
-        movieRepository.seve(movie);
+        movieRepository.save(movie);
         System.out.println("film dobavlen: " + movie.getTitle());
         log.info("film dobavlen: {}", movie.getTitle());
     }
@@ -124,7 +124,7 @@ public class MovieManager {
                         MovieStatus status = MovieStatus.valueOf(parts[2].trim());
                         MovieGenre genre = MovieGenre.valueOf(parts[3].trim()); // Разбираем жанр
                         Movie movie = new Movie(id, title, genre, status);
-                        movieRepository.seve(movie);
+                        movieRepository.save(movie);
                     } catch (IllegalArgumentException exception) {
                         log.warn("Ошибка в строке {}: Некорректный статус или жанр -> {}", lineNumber, movieLine);
                     }
@@ -152,7 +152,7 @@ public class MovieManager {
 
         if (!movie.getProducer().contains(producerName)) {
             movie.getProducer().add(producerName);
-            movieRepository.seve(movie);
+            movieRepository.save(movie);
             System.out.println("Продюсер добавлен: " + producerName);
             log.info("Продюсер добавлен: {}", producerName);
         } else {
@@ -169,7 +169,7 @@ public class MovieManager {
         }
 
         if (movie.getProducer().remove(producerName)) {
-            movieRepository.seve(movie);
+            movieRepository.save(movie);
             System.out.println("Продюсер удалён: " + producerName);
             log.info("Продюсер удалён: {}", producerName);
         } else {
@@ -187,7 +187,7 @@ public class MovieManager {
 
         if (!movie.getActors().contains(actorName)) {
             movie.getActors().add(actorName);
-            movieRepository.seve(movie);
+            movieRepository.save(movie);
             System.out.println("Актёр добавлен: " + actorName);
             log.info("Актёр добавлен: {}", actorName);
         } else {
@@ -204,7 +204,7 @@ public class MovieManager {
         }
 
         if (movie.getActors().remove(actorName)) {
-            movieRepository.seve(movie);
+            movieRepository.save(movie);
             System.out.println("Актёр удалён: " + actorName);
             log.info("Актёр удалён: {}", actorName);
         } else {
@@ -227,7 +227,7 @@ public class MovieManager {
         }
 
         movie.setStatus(newStatus);
-        movieRepository.seve(movie);
+        movieRepository.save(movie);
         System.out.println("Статус фильма обновлён на: " + newStatus);
         log.info("Статус фильма обновлён на: {}", newStatus);
     }

@@ -9,7 +9,7 @@ public class InMemoryMovieRepositoryImpl implements MovieRepository {
     private final Map<String, Movie> movieMap = new HashMap<>();
 
     @Override
-    public void seve(Movie movie) {
+    public void save(Movie movie) {
         movieMap.put(movie.getId(), movie);
     }
 

@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface MovieRepository {
-    void seve(Movie movie);
+    void save(Movie movie);
     Optional<Movie> findById(String id);
     List<Movie> findAll();
     void update(Movie movie);
